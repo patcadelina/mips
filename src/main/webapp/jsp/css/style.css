@@ -1,0 +1,46 @@
+
+html{
+   height: 100%;
+}
+
+body{
+   height: 100%;
+   overflow: auto;
+   font-family: sans-serif;
+}
+
+.errorHidden{
+   display: none;
+   background-color: #036f3d;
+   border-color: #036f3d;
+   color: white;
+}
+
+.sectionMain{ 
+	height:100%; 
+	width:100%; 
+	top: 0; 
+	left:0; 
+	bottom:0; 
+	right:0;
+	overflow: auto; 
+	display:block;
+	max-width: 908px;
+	max-height: 1158px;
+   min-width: 908px;
+	margin:auto; 
+	background: white;
+	overflow:visible;
+   opacity:1;
+}
+.navTop{
+ 	position: relative;
+}
+.nav-tabs>li.active>a, .nav-tabs>li.active>a:hover, .nav-tabs>li.active>a:focus{
+	color: #036f3d;
+}
+ 
+.runToolbar{
+	position: relative;
+	top: -8px;
+}
