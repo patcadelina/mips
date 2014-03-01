@@ -7,18 +7,18 @@ public class Register {
 
 	private String name;
 
-	private Long value;
+	private String value;
 
 	public Register() {
 
 	}
 
-	private Register(String name, Long value) {
+	private Register(String name, String value) {
 		this.name = name;
 		this.value = value;
 	}
 
-	public static Register newInstance(String name, Long value) {
+	public static Register newInstance(String name, String value) {
 		return new Register(name, value);
 	}
 
@@ -30,11 +30,11 @@ public class Register {
 		this.name = name;
 	}
 
-	public Long getValue() {
+	public String getValue() {
 		return value;
 	}
 
-	public void setValue(Long value) {
+	public void setValue(String value) {
 		this.value = value;
 	}
 

@@ -13,7 +13,7 @@ public class RegisterServiceImpl implements RegisterService {
 
 	@Override
 	public void init() {
-		registerMap.put("R0", Register.newInstance("R0", 0b0L));
+		registerMap.put("R0", Register.newInstance("R0", "0000000000000000000000000000000000000000000000000000000000000000"));
 		registerMap.put("R1", Register.newInstance("R1", null));
 		registerMap.put("R2", Register.newInstance("R2", null));
 		registerMap.put("R3", Register.newInstance("R3", null));
