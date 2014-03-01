@@ -13,6 +13,6 @@ public interface MemoryAddressService {
 
 	MemoryAddress update(MemoryAddress request);
 
-	String create(Instruction request);
+	void compile(List<Instruction> instructions);
 
 }

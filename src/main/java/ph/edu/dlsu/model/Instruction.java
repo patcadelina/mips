@@ -13,6 +13,15 @@ public class Instruction {
 
 	}
 
+	private Instruction(int line, String request) {
+		this.line = line;
+		this.request = request;
+	}
+
+	public static Instruction newInstance(int line, String request) {
+		return new Instruction(line, request);
+	}
+
 	public int getLine() {
 		return line;
 	}

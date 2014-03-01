@@ -10,18 +10,18 @@ public class MemoryAddress {
 
 	private String address;
 
-	private Long value;
+	private String value;
 
 	public MemoryAddress() {
 
 	}
 
-	private MemoryAddress(String address, Long value) {
+	private MemoryAddress(String address, String value) {
 		this.address = address;
 		this.value = value;
 	}
 
-	public static MemoryAddress newInstance(String address, Long value) {
+	public static MemoryAddress newInstance(String address, String value) {
 		return new MemoryAddress(address, value);
 	}
 
@@ -33,11 +33,11 @@ public class MemoryAddress {
 		this.address = address;
 	}
 
-	public Long getValue() {
+	public String getValue() {
 		return value;
 	}
 
-	public void setValue(Long value) {
+	public void setValue(String value) {
 		this.value = value;
 	}
 
