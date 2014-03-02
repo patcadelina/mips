@@ -2,6 +2,6 @@ package ph.edu.dlsu.model;
 
 public enum Op {
 
-	DADDIU, ANDI, INVALID
+	DADDIU, ANDI, BNEZ, J, LD, SD, INVALID
 
 }

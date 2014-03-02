@@ -41,9 +41,17 @@ public class BinaryHexUtilTest {
 	}
 
 	@Test
-	public void shouldParseSignedBinary() throws IOException {
+	public void shouldParseNegativeBinary() throws IOException {
 		String binary = "1111111111111111111111111111111111111111111111111111111111111110";
 		long expected = -2; 
+		long actual = BinaryHexUtil.parseSignedBinary(binary);
+		Assert.assertEquals(expected, actual);
+	}
+
+	@Test
+	public void shouldParsePositiveBinary() throws IOException {
+		String binary = "0000000000000000000000000000000000000000000000000000000000001110";
+		long expected = 14; 
 		long actual = BinaryHexUtil.parseSignedBinary(binary);
 		Assert.assertEquals(expected, actual);
 	}

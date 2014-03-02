@@ -269,18 +269,26 @@ public class InstructionUtilTest {
 	}
 
 	@Test
-	public void shouldGetRegisterAFromOpcode() {
+	public void shouldGetRsFromOpcode() {
 		String opcode = "00000000010000110000100000101101";
 		String expected = "00010";
-		String actual = InstructionUtil.getRegisterA(opcode);
+		String actual = InstructionUtil.getRs(opcode);
 		Assert.assertEquals(expected, actual);
 	}
 
 	@Test
-	public void shouldGetRegisterBFromOpcode() {
+	public void shouldGetRtFromOpcode() {
 		String opcode = "00000000010000110000100000101101";
 		String expected = "00011";
-		String actual = InstructionUtil.getRegisterB(opcode);
+		String actual = InstructionUtil.getRt(opcode);
+		Assert.assertEquals(expected, actual);
+	}
+
+	@Test
+	public void shouldGetRdFromOpcode() {
+		String opcode = "00000000010000110000100000101101";
+		String expected = "00001";
+		String actual = InstructionUtil.getRd(opcode);
 		Assert.assertEquals(expected, actual);
 	}
 

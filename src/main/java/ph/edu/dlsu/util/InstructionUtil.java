@@ -223,12 +223,16 @@ public class InstructionUtil {
 		return opcode.substring(0, 6);
 	}
 
-	public static String getRegisterA(String opcode) {
+	public static String getRs(String opcode) {
 		return opcode.substring(6, 11);
 	}
 
-	public static String getRegisterB(String opcode) {
+	public static String getRt(String opcode) {
 		return opcode.substring(11, 16);
+	}
+
+	public static String getRd(String opcode) {
+		return opcode.substring(16, 21);
 	}
 
 	public static String getImm(String opcode) {
@@ -250,6 +254,10 @@ public class InstructionUtil {
 		switch(opcode) {
 		case "011001": return Op.DADDIU;
 		case "001100": return Op.ANDI;
+		case "000101": return Op.BNEZ;
+		case "000010": return Op.J;
+		case "110111": return Op.LD;
+		case "111111": return Op.SD;
 		default: return Op.INVALID;
 		}
 	}

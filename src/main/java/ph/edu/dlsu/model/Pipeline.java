@@ -1,6 +1,6 @@
 package ph.edu.dlsu.model;
 
-import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -9,18 +9,18 @@ public class Pipeline {
 
 	private int clock;
 
-	private List<Process> processes;
+	private Set<Process> processes;
 
 	public Pipeline() {
 
 	}
 
-	private Pipeline(int clock, List<Process> processes) {
+	private Pipeline(int clock, Set<Process> processes) {
 		this.clock = clock;
 		this.processes = processes;
 	}
 
-	public static Pipeline newInstance(int clock, List<Process> processes) {
+	public static Pipeline newInstance(int clock, Set<Process> processes) {
 		return new Pipeline(clock, processes);
 	}
 
@@ -32,11 +32,11 @@ public class Pipeline {
 		this.clock = clock;
 	}
 
-	public List<Process> getProcesses() {
+	public Set<Process> getProcesses() {
 		return processes;
 	}
 
-	public void setProcesses(List<Process> processes) {
+	public void setProcesses(Set<Process> processes) {
 		this.processes = processes;
 	}
 

@@ -30,6 +30,15 @@ public class BinaryHexUtil {
 		return builder.append(partial).toString();
 	}
 
+	public static String toNBitHex(long num, int n) {
+		StringBuilder builder = new StringBuilder();
+		String partial = Long.toHexString(num).toUpperCase();
+		for (int i = 0; i < n - partial.length(); i++) {
+			builder.append("0");
+		}
+		return builder.append(partial).toString();
+	}
+
 	public static String toNBitBinary(int num, int n) {
 		StringBuilder builder = new StringBuilder();
 		String partial = Long.toBinaryString(num);
@@ -49,22 +58,26 @@ public class BinaryHexUtil {
 	}
 
 	public static long parseSignedBinary(String binary) throws IOException {
-		InputStream stream = new ByteArrayInputStream(binary.getBytes());
-		BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-		StringBuilder builder = new StringBuilder();
-		int c;
-		try {
-			while ((c = reader.read()) != -1) {
-				builder.append(c == 49? 0 : 1);
+		if (binary.startsWith("1")) {
+			InputStream stream = new ByteArrayInputStream(binary.getBytes());
+			BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+			StringBuilder builder = new StringBuilder();
+			int c;
+			try {
+				while ((c = reader.read()) != -1) {
+					builder.append(c == 49 ? 0 : 1);
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				reader.close();
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			reader.close();
+			long value = Long.parseLong(builder.toString(), 2) + 1;
+			return value *= -1;
+		} else {
+			return Long.parseLong(binary, 2);
 		}
-		long value = Long.parseLong(builder.toString(), 2) + 1;
-		return value *= -1;
 	}
 
 }
