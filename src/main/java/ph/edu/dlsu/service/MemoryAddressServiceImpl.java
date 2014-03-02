@@ -60,12 +60,9 @@ public class MemoryAddressServiceImpl implements MemoryAddressService {
 			String opcode = InstructionUtil.generateOpcode(instruction);
 			String address = computeInstructionAddress(instruction.getLine());
 			saveInstruction(address, opcode);
-			
-			if (address.equals(START_ADDRESS)) {
-				Register register = Register.newInstance("PC", opcode);
-				registerService.update(register);
-			}
 		}
+		Register register = Register.newInstance("PC", START_ADDRESS);
+		registerService.update(register);
 	}
 
 	private String computeInstructionAddress(int line) {
