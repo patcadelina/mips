@@ -19,8 +19,17 @@ var MainRouter = Backbone.Router.extend({
 	   		model: editorModel
 	   	});
 	   	editorView.render();
-	   	//Declare the Run Mode View
 	   	
+	   	var registerCollection = new RegisterCollection();
+	    var sampleRegister = new RegisterModel();
+	    sampleRegister.set('registerName', 'R0');
+	    sampleRegister.set('registerValue', '0000');
+	    registerCollection.add(sampleRegister);
+	   	var registerView = new RegisterView({
+	   		el: "body",
+	   		collection: registerCollection
+	   	});
+	   	registerView.render();
    }
 
 });
