@@ -44,3 +44,11 @@ body{
 	position: relative;
 	top: -8px;
 }
+.registerTextBox{
+	width:50px;
+	margin-left: 8px;
+}
+.navbar-default {
+	background-color: white;
+	border-color: #e7e7e7;
+}

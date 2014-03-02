@@ -40,7 +40,10 @@
 <!--Start Import App JS Files-->
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/script.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/models/EditorModel.js"></script>
+	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/models/RegisterModel.js"></script>
+	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/models/collections/RegisterCollection.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/views/EditorView.js"></script>
+	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/views/RegisterView.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/routes/MainRoute.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/main.js"></script>
 	
@@ -81,22 +84,19 @@
 								<div class="btn-group" style="position: relative;top: 7px; left: -60px;">
 								  <button type="button" class="btn btn-default active"><i class="fa fa-flag-checkered"></i> Full Execution Mode</button>
 								  <button type="button" class="btn btn-default"><i class="fa fa fa-chevron-right"></i> Step Through Execution Mode</button>
+								
 								</div>
+								 <button name="compile" type="button" class="btn btn-default btn-sm" style="border-radius:10px;position: relative;top: 5px;">
+										<span class="fa-stack fa-1x">
+											<i class="fa fa-play fa-stack-1x"></i>
+										</span>
+								</button>
 							</li>
-							<li><a href="#"><i class="fa fa-film"></i> Memory</a></li>
-							<li><a href="#"><i class="fa fa-bars"></i> Registers</a></li>
 						</ul>
 					</div>
 					<!-- /.navbar-collapse -->
 				</div>
 			</nav>
-		</div>
-		<div class="runToolbar" id="runToolbar">
-			<button name="compile" type="button" class="btn btn-default btn-sm" style="border-radius:10px;">
-				<span class="fa-stack fa-1x">
-					<i class="fa fa-play fa-stack-1x"></i>
-				</span>
-			</button>
 		</div>
 		<div style="">
 			<ul class="nav nav-tabs">
@@ -114,6 +114,8 @@
 				<li><a href="#internalRegisters" data-toggle="tab"><span class="fa-stack fa-1x">
 					<i class="fa fa-cogs fa-2x"></i> 
 					</span> MIPS 64 Internal Registers</a></li>
+				<li><a href="#memory" data-toggle="tab"><span class="fa-stack fa-1x"><i class="fa fa-film fa-2x"></i></span> Memory</a></li>
+				<li><a href="#registers" data-toggle="tab"><span class="fa-stack fa-1x"><i class="fa fa-bars fa-2x"></i></span> Registers</a></li>
 			</ul>
 			<div class="tab-content">
 				<div class="tab-pane fade in active" id="editor">
@@ -138,6 +140,16 @@
 				</div>
 				<div class="tab-pane fade in" id="internalRegisters">
 				
+				</div>
+				<div class="tab-pane fade in" id="memory">
+				
+				</div>
+				<div class="tab-pane fade in" id="registers">
+					<div>
+						<table class="table table-striped" id="registerTable">
+						 
+						</table>
+					</div>
 				</div>
 			</div>
 		</div>
