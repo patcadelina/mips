@@ -6,20 +6,15 @@ var MainRouter = Backbone.Router.extend({
    
    //This the main route of the application
    main: function(){
-	   	console.log('Route Initialzed....');
-	   	
-	   	//Declare the Mode View
-	   	//Declare Error Console View
 	   	//Declare the Editor View
-	   	
 	   	var editorModel = new EditorModel({});
-	   	
 	   	var editorView = new EditorView({
 	   		el: "body",
 	   		model: editorModel
 	   	});
 	   	editorView.render();
 	   	
+	   	//Declare the Register View
 	   	var registerCollection = new RegisterCollection();
 	    var sampleRegister = new RegisterModel();
 	    sampleRegister.set('registerName', 'R0');
@@ -30,6 +25,19 @@ var MainRouter = Backbone.Router.extend({
 	   		collection: registerCollection
 	   	});
 	   	registerView.render();
+	   	
+	   	//Declare the MIPS Register View
+	   	var mipsRegisterCollection = new RegisterCollection();
+	    var sampleMipsRegister = sampleRegister.clone();
+	    sampleMipsRegister.set('registerName', 'IF/ID.IR');
+	    sampleMipsRegister.set('registerValue', '0000');
+	    mipsRegisterCollection.add(sampleMipsRegister);
+	    var mipsInternalRegisterView = new MIPSInternalRegisterView({
+	    	el: "body",
+	    	collection: mipsRegisterCollection
+	    });
+	    mipsInternalRegisterView.render();
+	    
    }
 
 });
