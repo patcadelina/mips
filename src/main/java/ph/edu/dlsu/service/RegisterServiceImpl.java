@@ -66,10 +66,10 @@ public class RegisterServiceImpl implements RegisterService {
 	}
 
 	@Override
-	public Register update(Register request) {
-		Register register = registerMap.get(request.getName());
-		register.setValue(request.getValue());
-		return register;
+	public Register update(Register register) {
+		Register updated = registerMap.get(register.getName());
+		updated.setValue(register.getValue());
+		return updated;
 	}
 
 }

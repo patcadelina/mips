@@ -7,12 +7,15 @@ import java.util.Map;
 
 import ph.edu.dlsu.model.Instruction;
 import ph.edu.dlsu.model.MemoryAddress;
+import ph.edu.dlsu.model.Register;
 import ph.edu.dlsu.util.InstructionUtil;
 
 public class MemoryAddressServiceImpl implements MemoryAddressService {
 
 	private static final int HEX = 16;
+	private static final String START_ADDRESS = "0000";
 	private static Map<String, MemoryAddress> memoryMap = new HashMap<String, MemoryAddress>();
+	private RegisterService registerService = new RegisterServiceImpl();
 
 	@Override
 	public void init() {
@@ -57,6 +60,11 @@ public class MemoryAddressServiceImpl implements MemoryAddressService {
 			String opcode = InstructionUtil.generateOpcode(instruction);
 			String address = computeInstructionAddress(instruction.getLine());
 			saveInstruction(address, opcode);
+			
+			if (address.equals(START_ADDRESS)) {
+				Register register = Register.newInstance("PC", opcode);
+				registerService.update(register);
+			}
 		}
 	}
 

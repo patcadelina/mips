@@ -12,6 +12,6 @@ public interface RegisterService {
 
 	Register find(String registerId);
 
-	Register update(Register request);
+	Register update(Register register);
 
 }

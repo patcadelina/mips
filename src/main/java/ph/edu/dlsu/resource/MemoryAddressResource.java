@@ -63,9 +63,6 @@ public class MemoryAddressResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response compile(List<Instruction> instructions) {
-		for (Instruction i : instructions) {
-			System.out.println(i.toString());
-		}
 		memoryAddressService.compile(instructions);
 		return Response.ok().build();
 	}
