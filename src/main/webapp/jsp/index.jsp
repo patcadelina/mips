@@ -44,6 +44,7 @@
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/models/collections/RegisterCollection.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/views/EditorView.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/views/RegisterView.js"></script>
+	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/views/MIPSInternalRegisterView.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/routes/MainRoute.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/main.js"></script>
 	
@@ -139,10 +140,21 @@
 					</div>
 				</div>
 				<div class="tab-pane fade in" id="internalRegisters">
-				
+					<div id="">
+						<table class="table table-striped" id="internalRegistersTable">
+						 
+						</table>
+					</div>
 				</div>
 				<div class="tab-pane fade in" id="memory">
-				
+				<form class="navbar-form navbar-left" role="search">
+				  <div class="form-group">
+				  	<span>Display Memory Address:</span>
+				    <input type="text" class="form-control" placeholder="Start">
+				    <input type="text" class="form-control" placeholder="End">
+				  </div>
+				  <button type="submit" class="btn btn-default">Display</button>
+				</form>	
 				</div>
 				<div class="tab-pane fade in" id="registers">
 					<div>

@@ -2,7 +2,7 @@ editor = '';
 
 var labelStack = new Array();
 var registers = new Array();
-var iTypeKeywords = ["BEQZ", "LD", "SD", "AND", "DSRV", "SLT"];
+var iTypeKeywords = ["BNEZ", "LD", "SD", "DADDIU", "ANDI"];
 var rTypeKeywords = ["DADDU", "DSUBU", "OR", "DSLLV", "SLT"];
 var jTypeKeywords = ["J"];
 var errorStack = new Array();
@@ -52,7 +52,6 @@ function parseSourceCode(){
 		    }
 	    }
 	}
-	console.log("------------------------------");
 	//Second pass through for line by line validation
 	if(!hasException){
 		for (var i=0; i<lines.length; i++) {
@@ -61,7 +60,6 @@ function parseSourceCode(){
 		    var tokenizedString = noLeadingAndTrailingSpaces.split(" ");
 		    if(tokenizedString.length>1){ // make sure line is not a empty line
 		    	var isValid = validateSyntax(tokenizedString,i+1);
-			    console.log(isValid + " => Line" + (i+1));
 			    if(!isValid){
 			    	hasException = true;
 			    	break;
@@ -77,8 +75,9 @@ function parseSourceCode(){
 	}
 	
 	if(hasException){
-		console.log(errorStack);
-		console.log("Compilation Failed. Please check stack trace for details");
+		errorStack.push("Compilation Failed. Please check stack trace for details");
+	}else{
+		errorStack.push("Compilation Success... Running the program...");
 	}
 	
 	
@@ -187,12 +186,21 @@ function validateRegister(register){
 	return isValidRegister;
 }
 
-function validateHex(hexString){
+function validateHex(hexString, hasHash){
 	var isValidHex = false;
-	if(hexString.charAt(0)!="#"||hexString.length!=5){
-		return false;
+	var i=1;
+	if(hasHash){
+		if(hexString.charAt(0)!="#"||hexString.length!=5){
+			return false;
+		}
+	}else{
+		if(hexString.length!=4){
+			return false;
+		}
+		i=0;
 	}
-	for(var i=1; i<hexString.length; i++){
+	
+	for(;i<hexString.length; i++){
 		var currentHexDigit = hexString.charAt(i);
 		var validHexDigits = new Array();
 		//sets a valid array with a set of valid characters
@@ -213,6 +221,19 @@ function validateHex(hexString){
 			break;
 		}
 	}
+	
+	if(isValidHex){
+		//check if the imm exceed the data segment 2000-3FFF
+		if(hasHash){
+			hexString = hexString.substring(1, hexString.length);
+		}
+	}
+	//Uncomment to restrict hex constants to 2000 -3FFF
+	//var hexIntValue = parseInt(hexString,16);
+	//if(hexIntValue<parseInt("2000", 16) || hexIntValue>parseInt("3FFF", 16)){
+	//	isValidHex = false;
+	//	errorStack.push("An Immediate overflow exception (expected 2000-3FFF) ");
+	//}
 	return isValidHex;
 }
 
@@ -261,10 +282,139 @@ function getInstructionType(keyword){
  * 
  */
 function evaluateIType(tokenizedString, lineNumber){
-	return true;
+	//Itypes has the following from (NOT INCLUDING Branches, Loads and Stores)
+	var isValid = true;
+	var instruction = tokenizedString[0];
+	if(instruction=="LD" || instruction=="SD"){
+		//instruction rd, imm(register)
+		if(tokenizedString.length!=3){
+			isValid = false;
+			errorStack.push("Invalid format exception at line number " + lineNumber);
+		}
+		if(tokenizedString[1].charAt(tokenizedString[1].length-1)!=","){
+			isValid = false;
+			errorStack.push("Invalid format exception at line number (expected ,) " + lineNumber);
+		}else{
+			var isValidRegister = validateRegister(tokenizedString[1].substring(0,tokenizedString[1].length-1));
+			if(!isValidRegister){
+				isValid = false;
+				errorStack.push("Invalid register constant at line number " + lineNumber);
+			}else{
+				//check the offset with the following pattern 0000(register)
+				var regExp = /\(([^)]+)\)/;
+				var matches = regExp.exec(tokenizedString[2]);
+				var register = matches[1];
+				var imm = tokenizedString[2].substring(0,tokenizedString[2].indexOf("("));
+				var endImm = tokenizedString[2].substring(tokenizedString[2].indexOf(")")+1);
+				if(endImm==""){
+					var isValidRegister = validateRegister(register);
+					if(!isValidRegister){
+						isValid = false;
+						errorStack.push("Invalid register offset " + lineNumber);
+					}else{
+						var isValidImm = validateHex(imm, false);
+						if(!isValidImm){
+							isValid = false;
+							errorStack.push("Invalid imm offset at line number " + lineNumber);
+						}
+					}
+				}else{
+					isValid = false;
+					errorStack.push("Invalid format exception at line number " + lineNumber);
+				}
+			}
+		}
+		
+	}else if(instruction=="BNEZ"){
+		//branches has BRANCH register, label
+		if(tokenizedString.length!=3){
+			isValid = false;
+			errorStack.push("Invalid format exception at line number " + lineNumber);
+		}else{
+				// if the register does not have a , after
+			if(tokenizedString[1].charAt(tokenizedString[1].length-1)!=","){
+				isValid = false;
+				errorStack.push("Invalid format exception at line number (expected ,) " + lineNumber);
+			}else{
+				// check the register
+				var isValidRegister = validateRegister(tokenizedString[1].substring(0,tokenizedString[1].length-1));
+				if(!isValidRegister){
+					isValid = false;
+					errorStack.push("Invalid register constant at line number " + lineNumber);
+				}else{
+					//check the label
+					isValid = validateLabel(tokenizedString[2],false);
+					if(!isValid){
+						errorStack.push("Invalid Jump Label Exception at line number " + lineNumber);
+					}
+				}
+			}
+		}	
+	}else{
+		//other itypes have instruction rd, rs, #imm
+		if(tokenizedString.length!=4){
+			isValid = false;
+			errorStack.push("Invalid format exception at line number " + lineNumber);
+		}else{
+			//check the registers
+			for(var i=1; i<tokenizedString.length-1; i++){
+				if(tokenizedString[i].charAt(tokenizedString[i].length-1)!=","){
+					isValid = false;
+					errorStack.push("Invalid format exception at line number (expected ,) " + lineNumber);
+					break;
+				}
+				var isValidRegister = validateRegister(tokenizedString[i].substring(0,tokenizedString[i].length-1));
+				if(!isValidRegister){
+					isValid = false;
+					errorStack.push("Invalid register constant at line number " + lineNumber);
+					break;
+				}
+			}
+			if(isValid){
+				//check the imm
+				var isValidImm = validateHex(tokenizedString[3], true);
+				if(!isValidImm){
+					isValid = false;
+					errorStack.push("Invalid imm constant at line number " + lineNumber);
+				}
+			}
+		}
+	}
+	return isValid;
 }
 function evaluateRType(tokenizedString, lineNumber){
-	return true;
+	// J Types has the following form INSTRUCTION rd, rs, rt
+	//check if it has 3 tokens
+	var isValid = true;
+	if(tokenizedString.length==4){
+		//check registers and commas
+		for(var i=1; i<tokenizedString.length; i++){
+			if(i==3){ //the last register must not have a comma
+				var isValidRegister = validateRegister(tokenizedString[i]);
+				if(!isValidRegister){
+					isValid = false;
+					errorStack.push("Invalid register constant at line number " + lineNumber);
+					break;
+				}
+			}else{
+				if(tokenizedString[i].charAt(tokenizedString[i].length-1)!=","){
+					isValid = false;
+					errorStack.push("Invalid format exception at line number (expected ,) " + lineNumber);
+					break;
+				}
+				var isValidRegister = validateRegister(tokenizedString[i].substring(0,tokenizedString[i].length-1));
+				if(!isValidRegister){
+					isValid = false;
+					errorStack.push("Invalid register constant at line number " + lineNumber);
+					break;
+				}
+			}
+		}
+	}else{
+		isValid = false;
+		errorStack.push("Invalid format exception at line number " + lineNumber);
+	}
+	return isValid;
 }
 function evaluateJType(tokenizedString, lineNumber){
 	// J Types has the following form J <LABEL>
@@ -281,5 +431,9 @@ function evaluateJType(tokenizedString, lineNumber){
 		errorStack.push("Invalid format exception at line number " + lineNumber);
 	}
 	return isValid;
+}
+
+function getErrorStack(){
+	return errorStack;
 }
 
