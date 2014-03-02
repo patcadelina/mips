@@ -8,6 +8,7 @@ import java.util.Map;
 import ph.edu.dlsu.model.Instruction;
 import ph.edu.dlsu.model.MemoryAddress;
 import ph.edu.dlsu.model.Register;
+import ph.edu.dlsu.util.BinaryHexUtil;
 import ph.edu.dlsu.util.InstructionUtil;
 
 public class MemoryAddressServiceImpl implements MemoryAddressService {
@@ -20,18 +21,9 @@ public class MemoryAddressServiceImpl implements MemoryAddressService {
 	@Override
 	public void init() {
 		for (int i = 0; i <= MemoryAddress.MAX_MEMORY; i++) {
-			String address = toNBitHex(i, 4);
+			String address = BinaryHexUtil.toNBitHex(i, 4);
 			memoryMap.put(address, MemoryAddress.newInstance(address, null));
 		}
-	}
-
-	private String toNBitHex(int num, int n) {
-		StringBuilder builder = new StringBuilder();
-		String partial = Long.toHexString(num).toUpperCase();
-		for (int i = 0; i < n - partial.length(); i++) {
-			builder.append("0");
-		}
-		return builder.append(partial).toString();
 	}
 
 	@Override
@@ -40,7 +32,7 @@ public class MemoryAddressServiceImpl implements MemoryAddressService {
 		Integer end = Integer.parseInt(endAddress, HEX);
 		List<MemoryAddress> memoryAddresses = new ArrayList<MemoryAddress>();
 		for (; start <= end; start++) {
-			memoryAddresses.add(memoryMap.get(toNBitHex(start.intValue(), 4)));
+			memoryAddresses.add(memoryMap.get(BinaryHexUtil.toNBitHex(start.intValue(), 4)));
 		}
 		return memoryAddresses;
 	}
@@ -66,7 +58,7 @@ public class MemoryAddressServiceImpl implements MemoryAddressService {
 	}
 
 	private String computeInstructionAddress(int line) {
-		return toNBitHex((line - 1) * 4, 4);
+		return BinaryHexUtil.toNBitHex((line - 1) * 4, 4);
 	}
 
 	private void saveInstruction(String address, String opcode) {
@@ -85,7 +77,7 @@ public class MemoryAddressServiceImpl implements MemoryAddressService {
 		int offset = 8;
 		int i = 2;
 		while (addStart < addEnd) {
-			instructionMap.put(toNBitHex(addStart, 4), opcode.substring(opcodeStart, opcodeEnd));
+			instructionMap.put(BinaryHexUtil.toNBitHex(addStart, 4), opcode.substring(opcodeStart, opcodeEnd));
 			addStart++;
 			opcodeStart = opcodeEnd;
 			opcodeEnd = offset * i++;

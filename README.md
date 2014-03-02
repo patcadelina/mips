@@ -6,14 +6,59 @@ Minified 64-bit MIPS
 
 Server Side
 ------------------------------
+
 API
-PUT  ../system/init    --initialize memory and registers
-GET  ../registers      --find all registers
-GET  ../registers/<id> --find register
-PUT  ../registers/<id> --update register (accepts register json)
-GET  ../memory?from=<startAddress>&to=<endAddress>  --find memory in range 'from' to 'to'
-PUT  ../memory/<address>  --update memory at address (accepts memory json)
-POST ../memory --create instruction (accepts instruction collection json)
+
+------------------   Generic Input/Output from API   -------------------
+Input: [Header: Content-Type application/json]
+Output: 200 OK
+        400 Bad Request
+        404 Not Found
+        500 Internal Server Error
+Note: null values from server are not returned to JSON output
+e.g. for Register object {"name": <name>, "value": value}, value is not displayed in JSON return if "value" is null
+
+
+PUT     ../system/init
+Usage:  initialize memory and registers
+Input:  NA
+Output: NA
+
+
+GET     ../registers
+Usage:  find all registers
+Input:  NA
+Output: [{"name": "R0", "value": "0000000000000000000000000000000000000000000000000000000000000000"}, {"name": "R1"}, ...]
+
+
+GET     ../registers/<id>
+Usage:  find register
+Input:  {"name": "R1"}
+Output: {"name": "R1", "value": "0000000000000000000000000000000000000000000000000000000000000001"}
+
+
+PUT     ../registers/<id> 
+Usage:  update register (accepts register json)
+Input:  {"name": "R1", "value": "0000000000000000000000000000000000000000000000000000000000000101"}
+Output: {"name": "R1", "value": "0000000000000000000000000000000000000000000000000000000000000101"}
+
+
+GET     ../memory?from=<startAddress>&to=<endAddress>
+Usage:  find memory in range 'from' to 'to'
+Input:  NA
+Output: [{"address": "2000", "value": "00000111"}]
+
+
+PUT     ../memory/<address>
+Usage:  update memory at address (accepts memory json)
+Input:  {"address": "2004", "value": "00010001"}
+Output: {"address": "2004", "value": "00010001"}
+
+
+POST    ../memory
+Usage:  create instruction (accepts instruction collection json)
+Input:  [{"line": 1, "command": "DADDU R1, R0, R2"}, {"line": 2, "command": "BNEZ R1, L1}, ..]
+Output: NA
 
 
 Client Side

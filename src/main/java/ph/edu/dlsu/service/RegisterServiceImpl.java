@@ -49,6 +49,20 @@ public class RegisterServiceImpl implements RegisterService {
 		registerMap.put("hi", Register.newInstance("hi", null));
 		registerMap.put("lo", Register.newInstance("lo", null));
 		registerMap.put("c0", Register.newInstance("c0", null));
+		registerMap.put("IF/ID.IR", Register.newInstance("IF/ID.IR", null));
+		registerMap.put("IF/ID.NPC", Register.newInstance("IF/ID.NPC", null));
+		registerMap.put("ID/EX.A", Register.newInstance("ID/EX.A", null));
+		registerMap.put("ID/EX.B", Register.newInstance("ID/EX.B", null));
+		registerMap.put("ID/EX.NPC", Register.newInstance("ID/EX.NPC", null));
+		registerMap.put("ID/EX.IR", Register.newInstance("ID/EX.IR", null));
+		registerMap.put("ID/EX.IMM", Register.newInstance("ID/EX.Imm", null));
+		registerMap.put("EX/MEM.IR", Register.newInstance("EX/MEM.IR", null));
+		registerMap.put("EX/MEM.ALUOutput", Register.newInstance("EX/MEM.ALUOutput", null));
+		registerMap.put("EX/MEM.cond", Register.newInstance("EX/MEM.cond", null));
+		registerMap.put("EX/MEM.B", Register.newInstance("EX/MEM.B", null));
+		registerMap.put("MEM/WB.IR", Register.newInstance("MEM/WB.IR", null));
+		registerMap.put("MEM/WB.ALUOutput", Register.newInstance("MEM/WB.ALUOutput", null));
+		registerMap.put("MEM/WB.LMD", Register.newInstance("MEM/WB.LMD", null));
 	}
 
 	@Override

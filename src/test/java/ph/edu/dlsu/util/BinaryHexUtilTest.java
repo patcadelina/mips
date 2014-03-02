@@ -1,5 +1,7 @@
 package ph.edu.dlsu.util;
 
+import java.io.IOException;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -35,6 +37,14 @@ public class BinaryHexUtilTest {
 	public void shouldConvertBinaryMaxValue() {
 		String expected = BINARY_MAX_64BIT;
 		String actual = BinaryHexUtil.toBinaryString(HEX_MAX_64BIT);
+		Assert.assertEquals(expected, actual);
+	}
+
+	@Test
+	public void shouldParseSignedBinary() throws IOException {
+		String binary = "1111111111111111111111111111111111111111111111111111111111111110";
+		long expected = -2; 
+		long actual = BinaryHexUtil.parseSignedBinary(binary);
 		Assert.assertEquals(expected, actual);
 	}
 
