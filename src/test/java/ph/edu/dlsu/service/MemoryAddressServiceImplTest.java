@@ -10,6 +10,7 @@ import ph.edu.dlsu.model.Instruction;
 public class MemoryAddressServiceImplTest {
 
 	private MemoryAddressService memoryAddressService = new MemoryAddressServiceImpl();
+	private RegisterService registerService = new RegisterServiceImpl();
 
 	@Test
 	public void shouldCompile() {
@@ -25,6 +26,8 @@ public class MemoryAddressServiceImplTest {
 		instructions.add(ins3);
 		instructions.add(ins4);
 		instructions.add(ins5);
+
+		registerService.init();
 		memoryAddressService.compile(instructions);
 	}
 
