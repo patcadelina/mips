@@ -7,12 +7,13 @@ Minified 64-bit MIPS
 Server Side
 ------------------------------
 API
-PUT ../system/init    --initialize memory and registers
-GET ../registers      --find all registers
-GET ../registers/<id> --find register
-PUT ../registers/<id> --update register (accepts register json)
-GET ../memory?from=<startAddress>&to=<endAddress>  --find memory in range 'from' to 'to'
-PUT ../memory/<address>  --update memory at address (accepts memory json)
+PUT  ../system/init    --initialize memory and registers
+GET  ../registers      --find all registers
+GET  ../registers/<id> --find register
+PUT  ../registers/<id> --update register (accepts register json)
+GET  ../memory?from=<startAddress>&to=<endAddress>  --find memory in range 'from' to 'to'
+PUT  ../memory/<address>  --update memory at address (accepts memory json)
+POST ../memory --create instruction (accepts instruction collection json)
 
 
 Client Side
