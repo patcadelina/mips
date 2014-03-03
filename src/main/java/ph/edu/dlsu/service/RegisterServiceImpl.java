@@ -46,9 +46,6 @@ public class RegisterServiceImpl implements RegisterService {
 		registerMap.put("R30", Register.newInstance("R30", null));
 		registerMap.put("R31", Register.newInstance("R31", null));
 		registerMap.put("PC", Register.newInstance("PC", null));
-		registerMap.put("hi", Register.newInstance("hi", null));
-		registerMap.put("lo", Register.newInstance("lo", null));
-		registerMap.put("c0", Register.newInstance("c0", null));
 		registerMap.put("IF/ID.IR", Register.newInstance("IF/ID.IR", null));
 		registerMap.put("IF/ID.NPC", Register.newInstance("IF/ID.NPC", null));
 		registerMap.put("ID/EX.A", Register.newInstance("ID/EX.A", null));
@@ -66,15 +63,6 @@ public class RegisterServiceImpl implements RegisterService {
 	}
 
 	@Override
-	public List<Register> findAll() {
-		List<Register> registers = new ArrayList<Register>();
-		for (String key : registerMap.keySet()) {
-			registers.add(registerMap.get(key));
-		}
-		return registers;
-	}
-
-	@Override
 	public Register find(String registerId) {
 		return registerMap.get(registerId);
 	}
@@ -84,6 +72,65 @@ public class RegisterServiceImpl implements RegisterService {
 		Register updated = registerMap.get(register.getName());
 		updated.setValue(register.getValue());
 		return updated;
+	}
+
+	@Override
+	public List<Register> findSystemRegisters() {
+		List<Register> registers = new ArrayList<Register>();
+		registers.add(registerMap.get("PC"));
+		registers.add(registerMap.get("IF/ID.IR"));
+		registers.add(registerMap.get("IF/ID.NPC"));
+		registers.add(registerMap.get("ID/EX.A"));
+		registers.add(registerMap.get("ID/EX.B"));
+		registers.add(registerMap.get("ID/EX.NPC"));
+		registers.add(registerMap.get("ID/EX.IR"));
+		registers.add(registerMap.get("ID/EX.IMM"));
+		registers.add(registerMap.get("EX/MEM.IR"));
+		registers.add(registerMap.get("EX/MEM.ALUOutput"));
+		registers.add(registerMap.get("EX/MEM.cond"));
+		registers.add(registerMap.get("EX/MEM.B"));
+		registers.add(registerMap.get("MEM/WB.IR"));
+		registers.add(registerMap.get("MEM/WB.ALUOutput"));
+		registers.add(registerMap.get("MEM/WB.LMD"));
+		return registers;
+	}
+
+	@Override
+	public List<Register> findGPRs() {
+		List<Register> registers = new ArrayList<Register>();
+		registers.add(registerMap.get("R0"));
+		registers.add(registerMap.get("R1"));
+		registers.add(registerMap.get("R2"));
+		registers.add(registerMap.get("R3"));
+		registers.add(registerMap.get("R4"));
+		registers.add(registerMap.get("R5"));
+		registers.add(registerMap.get("R6"));
+		registers.add(registerMap.get("R7"));
+		registers.add(registerMap.get("R8"));
+		registers.add(registerMap.get("R9"));
+		registers.add(registerMap.get("R10"));
+		registers.add(registerMap.get("R11"));
+		registers.add(registerMap.get("R12"));
+		registers.add(registerMap.get("R13"));
+		registers.add(registerMap.get("R14"));
+		registers.add(registerMap.get("R15"));
+		registers.add(registerMap.get("R16"));
+		registers.add(registerMap.get("R17"));
+		registers.add(registerMap.get("R18"));
+		registers.add(registerMap.get("R19"));
+		registers.add(registerMap.get("R20"));
+		registers.add(registerMap.get("R21"));
+		registers.add(registerMap.get("R22"));
+		registers.add(registerMap.get("R23"));
+		registers.add(registerMap.get("R24"));
+		registers.add(registerMap.get("R25"));
+		registers.add(registerMap.get("R26"));
+		registers.add(registerMap.get("R27"));
+		registers.add(registerMap.get("R28"));
+		registers.add(registerMap.get("R29"));
+		registers.add(registerMap.get("R30"));
+		registers.add(registerMap.get("R31"));
+		return registers;
 	}
 
 }

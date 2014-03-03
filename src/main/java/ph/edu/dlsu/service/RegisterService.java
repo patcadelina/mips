@@ -8,7 +8,9 @@ public interface RegisterService {
 
 	void init();
 
-	List<Register> findAll();
+	List<Register> findSystemRegisters();
+
+	List<Register> findGPRs();
 
 	Register find(String registerId);
 

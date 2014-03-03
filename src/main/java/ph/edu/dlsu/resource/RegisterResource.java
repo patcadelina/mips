@@ -24,8 +24,8 @@ public class RegisterResource {
 
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response findAll() {
-		List<Register> registers = registerService.findAll();
+	public Response findGPRs() {
+		List<Register> registers = registerService.findGPRs();
 		return Response.ok().entity(new GenericEntity<List<Register>>(registers) {}).build();
 	}
 
