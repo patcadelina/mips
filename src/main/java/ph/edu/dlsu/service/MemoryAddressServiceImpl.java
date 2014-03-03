@@ -46,15 +46,18 @@ public class MemoryAddressServiceImpl implements MemoryAddressService {
 	}
 
 	@Override
-	public void compile(List<Instruction> instructions) {
+	public List<MemoryAddress> compile(List<Instruction> instructions) {
 		List<Instruction> processed = InstructionUtil.preprocessReferences(instructions);
+		List<String> addresses = new ArrayList<String>();
 		for (Instruction instruction : processed) {
 			String opcode = InstructionUtil.generateOpcode(instruction);
 			String address = computeInstructionAddress(instruction.getLine());
+			addresses.add(address);
 			saveInstruction(address, opcode);
 		}
 		Register register = Register.newInstance("PC", START_ADDRESS);
 		registerService.update(register);
+		return find(addresses.get(0), BinaryHexUtil.toNBitHex((Integer.parseInt(addresses.get(addresses.size() - 1), 16) + 3), 4));
 	}
 
 	private String computeInstructionAddress(int line) {

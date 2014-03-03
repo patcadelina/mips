@@ -63,8 +63,8 @@ public class MemoryAddressResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response compile(List<Instruction> instructions) {
-		memoryAddressService.compile(instructions);
-		return Response.ok().build();
+		List<MemoryAddress> addresses = memoryAddressService.compile(instructions);
+		return Response.ok().entity(new GenericEntity<List<MemoryAddress>>(addresses) {}).build();
 	}
 
 }
