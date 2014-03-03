@@ -19,8 +19,23 @@ var EditorView = Backbone.View.extend({
 	},
 	
 	compileSource: function(){
-		parseSourceCode();
 		this.renderStackTrace();
+		var hasException = parseSourceCode();
+		if(!hasException){
+			var data = new Array();
+			for(var i=0; i<finalInstructionStack.length; i++){
+				var line = {line : i, command: finalInstructionStack[i]};
+				data.push(line);
+			}
+			$.ajax({
+				   url: App.commandUrl,
+				   data: {instructionArray:JSON.stringify(data)},
+				   type: 'PUT',
+				   success: function(response) {
+				     window.alert('sent');
+				   }
+			});
+		}
 	}
 	
 });
