@@ -11,8 +11,8 @@ PUT ../memory/ Usage: update memory at address (accepts memory json) Input: {"ad
 POST ../memory Usage: create instruction (accepts instruction collection json) Input: [{"line": 1, "command": "DADDU R1, R0, R2"}, {"line": 2, "command": "BNEZ R1, L1}, ..] Output: NA
  */
 window.App = {
-    initUrl : '../system/init',
-	memoryUrl : '../memory',
-    registerUrl : '../registers',
-    pipelineUrl : ''
+    initUrl : '../api/system/init',
+	memoryUrl : '../api/memory',
+    registerUrl : '../api/registers',
+    pipelineUrl : '../api/clock'
 };

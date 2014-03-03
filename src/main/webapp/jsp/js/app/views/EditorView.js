@@ -28,9 +28,10 @@ var EditorView = Backbone.View.extend({
 				data.push(line);
 			}
 			$.ajax({
-				   url: App.commandUrl,
-				   data: {instructionArray:JSON.stringify(data)},
-				   type: 'PUT',
+				   url: App.memoryUrl,
+				   data: JSON.stringify(data),
+				   type: 'POST',
+				   contentType: "application/json",
 				   success: function(response) {
 				     window.alert('sent');
 				   }
