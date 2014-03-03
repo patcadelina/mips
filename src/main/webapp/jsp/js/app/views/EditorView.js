@@ -19,24 +19,38 @@ var EditorView = Backbone.View.extend({
 	},
 	
 	compileSource: function(){
-		this.renderStackTrace();
 		var hasException = parseSourceCode();
-		if(!hasException){
-			var data = new Array();
-			for(var i=0; i<finalInstructionStack.length; i++){
-				var line = {line : (i+1), command: finalInstructionStack[i]};
-				data.push(line);
+		if(finalInstructionStack.length>0){
+			$("#statusCompile").removeClass("hidden");
+			$("#statusSuccess").addClass("hidden");
+			$("#statusCompile").addClass("display");
+			if(!hasException){
+				var data = new Array();
+				for(var i=0; i<finalInstructionStack.length; i++){
+					var line = {line : (i+1), command: finalInstructionStack[i]};
+					data.push(line);
+				}
+				$.ajax({
+					   url: App.memoryUrl,
+					   data: JSON.stringify(data),
+					   type: 'POST',
+					   contentType: "application/json",
+					   success: function(response) {
+						    $("#statusCompile").addClass("hidden");
+							$("#statusSuccess").removeClass("hidden");
+							$("#statusSuccess").addClass("display");
+							var pipelineView = new PipelineView({
+								el: "body",
+							});
+							pipelineView.renderOpcodeTable(response);
+							//Backbone.history.navigate('#fullExecution', {trigger:true}); 
+					   }
+				});
 			}
-			$.ajax({
-				   url: App.memoryUrl,
-				   data: JSON.stringify(data),
-				   type: 'POST',
-				   contentType: "application/json",
-				   success: function(response) {
-				     
-				   }
-			});
+		}else{
+			//errorStack.push("No Lines to Execute.");
 		}
+		this.renderStackTrace();
 	}
 	
 });

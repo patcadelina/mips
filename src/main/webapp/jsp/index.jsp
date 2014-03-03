@@ -47,6 +47,8 @@
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/views/RegisterView.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/views/MIPSInternalRegisterView.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/views/MemoryView.js"></script>
+	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/views/PipelineView.js"></script>
+	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/views/MenuView.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/routes/MainRoute.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/main.js"></script>
 	
@@ -77,17 +79,22 @@
 								class="icon-bar"></span> <span class="icon-bar"></span> <span
 								class="icon-bar"></span>
 						</button>
-						<a class="navbar-brand" href="#"><i class="fa fa-rocket"></i> MIPS 64 Mini Compiler</a>
+						<a class="navbar-brand" href="#">I <i class="fa fa-heart" style="color:pink;"></i> MIPS64
+						<span id="statusSuccess" class="label label-success hidden"><i class="fa fa-thumbs-o-up"></i> Success</span>
+						<span id="statusCompile" class="label label-info hidden"> <i class="fa fa-cog fa-spin"></i> Compling...</span></a>
+						
 					</div>
-
 					<div class="collapse navbar-collapse"
 						id="bs-example-navbar-collapse-6">
 						<ul class="nav navbar-nav" style="float: right;">
 							<li>
-								<div class="btn-group" style="position: relative;top: 7px; left: -60px;">
-								  <button name="fexe" type="button" class="btn btn-default active"><i class="fa fa-flag-checkered"></i> Full Execution Mode</button>
-								  <button name="stexe" type="button" class="btn btn-default"><i class="fa fa fa-chevron-right"></i> Step Through Execution Mode</button>
-								
+								<div class="btn-group" style="position: relative;top: 7px; left: -15px;">
+								  <button id="fexe" name="fexe" type="button" class="btn btn-default active"><i class="fa fa-flag-checkered"></i> Full Execution Mode</button>
+								  <button id="stexe" name="stexe" type="button" class="btn btn-default"><i class="fa fa fa-chevron-right"></i> Step Through Execution Mode</button>
+								</div>
+								<div class="btn-group" style="position: relative;top: 7px; left: -4px;">
+								  <button disabled id="prevCc" type="button" class="btn btn-default ccControl"><i class="fa fa-arrow-circle-o-left"></i></button>
+								  <button disabled id="nextCc"  type="button" class="btn btn-default ccControl"><i class="fa fa fa-arrow-circle-o-right"></i></button>
 								</div>
 								 <button name="compile" type="button" class="btn btn-default btn-sm" style="border-radius:10px;position: relative;top: 5px;">
 										<span class="fa-stack fa-1x">
@@ -102,6 +109,7 @@
 			</nav>
 		</div>
 		<div style="">
+		<span id="statusCc" class="label label-warning" style="position: relative; float: right; top: 15px; right: 44px; display:none;"><i class="fa fa-clock-o fa-2x"></i></span>
 			<ul class="nav nav-tabs">
 				<li class="active">
 					<a href="#editor" data-toggle="tab">
@@ -138,7 +146,22 @@
 				</div>
 				<div class="tab-pane fade in" id="pipelineMap">
 					<div>
-						<table class="table"></table>
+						<table class="table table-striped">
+							<thead>
+								<tr>
+									<td>Line Number</td>
+									<td>Instruction</td>
+									<td>Opcode</td>
+									<td>R (0-5)</td>
+									<td>R (6-10)</td>
+									<td>R (11-15)</td>
+									<td>R (16-31)</td>
+								</tr>
+							</thead>
+							<tbody id="opcodeTable">
+							
+							</tbody>
+						</table>
 					</div>
 				</div>
 				<div class="tab-pane fade in" id="internalRegisters">
