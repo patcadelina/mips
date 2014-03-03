@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import ph.edu.dlsu.model.DataLocation;
 import ph.edu.dlsu.model.Func;
 import ph.edu.dlsu.model.MemoryAddress;
 import ph.edu.dlsu.model.Op;
 import ph.edu.dlsu.model.Operation;
+import ph.edu.dlsu.model.OperationParams;
 import ph.edu.dlsu.model.Pipeline;
 import ph.edu.dlsu.model.Process;
 import ph.edu.dlsu.model.ProcessStatus;
@@ -22,9 +24,11 @@ import ph.edu.dlsu.util.InstructionUtil;
 public class SystemServiceImpl implements SystemService {
 
 	private static final int INSTRUCTION_OFFSET = 3;
+	private static boolean fetch = false;
 	private RegisterService registerService = new RegisterServiceImpl();
 	private MemoryAddressService memoryAddressService = new MemoryAddressServiceImpl();
 	private Map<Integer, Set<Process>> processMap = new HashMap<Integer, Set<Process>>();
+	private Map<String, DataLocation> registerDataMap = new HashMap<String, DataLocation>();
 
 	@Override
 	public Pipeline runCycle(int cycle) throws IOException {
@@ -49,15 +53,21 @@ public class SystemServiceImpl implements SystemService {
 				}
 			}
 			if (hasMEM) {
+				Register pc = registerService.find("pc");
 				Register mem_wb_ir = registerService.find("MEM/WB.IR");
 				Register mem_wb_aluoutput = registerService.find("MEM/WB.ALUOutput");
 				Register mem_wb_lmd = registerService.find("MEM/WB.LMD");
 
 				String opcode = mem_wb_ir.getValue();
-				String operationCode = InstructionUtil.getOperationCode(opcode);
-				Operation operation = InstructionUtil.getOperation(operationCode);
+				OperationParams params = buildOperationParams(mem_wb_ir);
+				if (params.getOperation().equals(Operation.BRANCH)) {
+					Set<Process> processes = getCurrentProcesses(cycle);
+					processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.WB));
+					processMap.put(cycle, processes);
+					return;
+				}
 
-				switch(operation) {
+				switch(params.getOperation()) {
 				case ALU:
 					Register aluDest = registerService.find("R" + Integer.parseInt(InstructionUtil.getRd(opcode), 2));
 					aluDest.setValue(mem_wb_aluoutput.getValue());
@@ -69,7 +79,7 @@ public class SystemServiceImpl implements SystemService {
 					registerService.update(immDest);
 					break;
 				case LOAD_STORE:
-					Op op = InstructionUtil.getOp(operationCode);
+					Op op = InstructionUtil.getOp(params.getOperationCode());
 					if (op.equals(Op.LD)) {
 						Register ldDest = registerService.find("R" + Integer.parseInt(InstructionUtil.getRt(opcode), 2));
 						ldDest.setValue(mem_wb_lmd.getValue());
@@ -81,8 +91,28 @@ public class SystemServiceImpl implements SystemService {
 				default:
 					break;
 				}
+
+				Set<Process> processes = getCurrentProcesses(cycle);
+				processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.WB));
+				processMap.put(cycle, processes);
+
+				filterRegisterDataMap();
 			}
 		}
+	}
+
+	private void filterRegisterDataMap() {
+		Map<String, DataLocation> filtered = new HashMap<String, DataLocation>(); 
+		for (String key : registerDataMap.keySet()) {
+			if (!DataLocation.MEM.equals(registerDataMap.get(key))) {
+				filtered.put(key, registerDataMap.get(key));
+			}
+		}
+		registerDataMap = filtered;
+	}
+
+	private Set<Process> getLastCycleProcesses(int cycle) {
+		return null == processMap.get(cycle - 1) ? new HashSet<Process>() : processMap.get(cycle - 1);
 	}
 
 	private void mem(int cycle) {
@@ -97,6 +127,7 @@ public class SystemServiceImpl implements SystemService {
 				}
 			}
 			if (hasEX) {
+				Register pc = registerService.find("pc");
 				Register mem_wb_ir = registerService.find("MEM/WB.IR");
 				Register mem_wb_aluoutput = registerService.find("MEM/WB.ALUOutput");
 				Register mem_wb_lmd = registerService.find("MEM/WB.LMD");
@@ -105,17 +136,26 @@ public class SystemServiceImpl implements SystemService {
 				Register ex_mem_aluoutput = registerService.find("EX/MEM.ALUOutput");
 				Register ex_mem_b = registerService.find("EX/MEM.B");
 
-				String operationCode = InstructionUtil.getOperationCode(ex_mem_ir.getValue());
-				Operation operation = InstructionUtil.getOperation(operationCode);
+				String opcode = ex_mem_ir.getValue();
+				OperationParams params = buildOperationParams(ex_mem_ir);
+				if (params.getOperation().equals(Operation.BRANCH)) {
+					Set<Process> processes = getCurrentProcesses(cycle);
+					processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.MEM));
+					processMap.put(cycle, processes);
+					return;
+				}
 
-				switch(operation) {
+				switch(params.getOperation()) {
 				case ALU:
+					mem_wb_aluoutput.setValue(ex_mem_aluoutput.getValue());
+					updateRegisterDataMapLocation(InstructionUtil.getRd(opcode), DataLocation.MEM);
+					break;
 				case IMM:
 					mem_wb_aluoutput.setValue(ex_mem_aluoutput.getValue());
+					updateRegisterDataMapLocation(InstructionUtil.getRt(opcode), DataLocation.MEM);
 					break;
 				case LOAD_STORE:
-					Op op = InstructionUtil.getOp(operationCode);
-					if (op.equals(Op.LD)) {
+					if (params.getOp().equals(Op.LD)) {
 						List<MemoryAddress> addresses = findMemoryAddresses(ex_mem_aluoutput);
 						int begin = 0;
 						int end = 8;
@@ -127,8 +167,9 @@ public class SystemServiceImpl implements SystemService {
 							begin = end;
 							end = offset * i++;
 						}
+						updateRegisterDataMapLocation(InstructionUtil.getRt(opcode), DataLocation.MEM);
 					}
-					else if (op.equals(Op.SD)) {
+					else if (params.getOp().equals(Op.SD)) {
 						List<MemoryAddress> addresses = findMemoryAddresses(ex_mem_aluoutput);
 						StringBuilder builder = new StringBuilder();
 						for (MemoryAddress ma : addresses) {
@@ -143,14 +184,25 @@ public class SystemServiceImpl implements SystemService {
 					break;
 				}
 
-				mem_wb_ir.setValue(ex_mem_ir.getValue());
+				mem_wb_ir.setValue(opcode);
 
 				registerService.update(mem_wb_ir);
 				registerService.update(mem_wb_aluoutput);
 				registerService.update(mem_wb_lmd);
+
+				Set<Process> processes = getCurrentProcesses(cycle);
+				processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.MEM));
+				processMap.put(cycle, processes);
 			}
 		}
 		
+	}
+
+	private void updateRegisterDataMapLocation(String registerId, DataLocation dataLocation) {
+		if (null != registerDataMap.get(registerId)) {
+			registerDataMap.remove(registerId);
+		}
+		registerDataMap.put(registerId, dataLocation);
 	}
 
 	private List<MemoryAddress> findMemoryAddresses(Register ex_mem_aluoutput) {
@@ -171,68 +223,75 @@ public class SystemServiceImpl implements SystemService {
 				}
 			}
 			if (hasID) {
+				Register pc = registerService.find("pc");
 				Register ex_mem_ir = registerService.find("EX/MEM.IR");
 				Register ex_mem_aluoutput = registerService.find("EX/MEM.ALUOutput");
-				Register ex_mem_cond = registerService.find("EX/MEM.cond");
 				Register ex_mem_b = registerService.find("EX/MEM.B");
 
 				Register id_ex_ir = registerService.find("ID/EX.IR");
 				Register id_ex_a = registerService.find("ID/EX.A");
 				Register id_ex_b = registerService.find("ID/EX.B");
 				Register id_ex_imm = registerService.find("ID/EX.Imm");
-				Register id_ex_npc = registerService.find("ID/EX.NPC");
 
-				String operationCode = InstructionUtil.getOperationCode(id_ex_ir.getValue());
-				Operation operation = InstructionUtil.getOperation(operationCode);
+				String opcode = id_ex_ir.getValue();
+				OperationParams params = buildOperationParams(id_ex_ir);
+				if (params.getOperation().equals(Operation.BRANCH)) {
+					Register ex_mem_cond = registerService.find("EX/MEM.cond");
+					if (ex_mem_cond.getValue().equals("1")) {
+						fetch = true;
+						ex_mem_cond.setValue("0");
+						registerService.update(ex_mem_cond);
 
-				if (Operation.ALU.equals(operation)) {
-					Func func = InstructionUtil.getFunc(InstructionUtil.getFuncCode(id_ex_ir.getValue()));
-					switch(func) {
+						Set<Process> processes = getCurrentProcesses(cycle);
+						processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.EX));
+						processMap.put(cycle, processes);
+					}
+					return;
+				}
+
+				if (Operation.ALU.equals(params.getOperation())) {
+					Register rs = Register.newInstance("rs", resolveRsValue(opcode, id_ex_a));
+					Register rt = Register.newInstance("rt", resolveRtValue(opcode, id_ex_b));
+					switch(params.getFunc()) {
 					case DADDU:
-						ex_mem_aluoutput.setValue(AluUtil.executeDADDU(id_ex_a, id_ex_b));
+						ex_mem_aluoutput.setValue(AluUtil.executeDADDU(rs, rt));
 						break;
 					case DSUBU:
-						ex_mem_aluoutput.setValue(AluUtil.executeDSUBU(id_ex_a, id_ex_b));
+						ex_mem_aluoutput.setValue(AluUtil.executeDSUBU(rs, rt));
 						break;
 					case OR:
-						ex_mem_aluoutput.setValue(AluUtil.executeOR(id_ex_a, id_ex_b));
+						ex_mem_aluoutput.setValue(AluUtil.executeOR(rs, rt));
 						break;
 					case DSLLV:
-						ex_mem_aluoutput.setValue(AluUtil.executeDSLLV(id_ex_a, id_ex_b));
+						ex_mem_aluoutput.setValue(AluUtil.executeDSLLV(rs, rt));
 						break;
 					case SLT:
-						ex_mem_aluoutput.setValue(AluUtil.executeSLT(id_ex_a, id_ex_b));
+						ex_mem_aluoutput.setValue(AluUtil.executeSLT(rs, rt));
 						break;
 					case INVALID:
 					default:
 						break;
 					}
-					ex_mem_cond.setValue("0");
+					registerDataMap.put(InstructionUtil.getRd(opcode), DataLocation.EX);
 				}
 
-				else if (Operation.IMM.equals(operation)) {
-					Op op = InstructionUtil.getOp(operationCode);
-					if (op.equals(Op.DADDIU)) {
-						ex_mem_aluoutput.setValue(AluUtil.executeDADDIU(id_ex_a, id_ex_imm));
+				else if (Operation.IMM.equals(params.getOperation())) {
+					Register rs = Register.newInstance("rs", resolveRsValue(opcode, id_ex_a));
+					if (params.getOp().equals(Op.DADDIU)) {
+						ex_mem_aluoutput.setValue(AluUtil.executeDADDIU(rs, id_ex_imm));
 					}
-					else if (op.equals(Op.ANDI)) {
-						ex_mem_aluoutput.setValue(AluUtil.executeANDI(id_ex_a, id_ex_imm));
+					else if (params.getOp().equals(Op.ANDI)) {
+						ex_mem_aluoutput.setValue(AluUtil.executeANDI(rs, id_ex_imm));
 					}
-					ex_mem_cond.setValue("0");
+					registerDataMap.put(InstructionUtil.getRt(opcode), DataLocation.EX);
 				}
 
-				else if (Operation.LOAD_STORE.equals(operation)) {
-					ex_mem_aluoutput.setValue(AluUtil.executeDADDIU(id_ex_a, id_ex_imm));
-					ex_mem_cond.setValue("0");
-				}
+				else if (Operation.LOAD_STORE.equals(params.getOperation())) {
+					Register rs = Register.newInstance("rs", resolveRsValue(opcode, id_ex_a));
+					ex_mem_aluoutput.setValue(AluUtil.executeDADDIU(rs, id_ex_imm));
 
-				else if (Operation.BRANCH.equals(operation)) {
-					ex_mem_aluoutput.setValue(AluUtil.executeDADDIU(id_ex_npc, id_ex_imm));
-					Op op = InstructionUtil.getOp(operationCode);
-					if (op.equals(Op.J)) {
-						ex_mem_cond.setValue("1");
-					} else if (op.equals(Op.BNEZ)) {
-						ex_mem_cond.setValue(AluUtil.executeNEZ(id_ex_a) ? "1" : "0");
+					if (Op.LD.equals(params.getOp())) {
+						registerDataMap.put(InstructionUtil.getRt(opcode), DataLocation.EX);
 					}
 				}
 
@@ -241,14 +300,43 @@ public class SystemServiceImpl implements SystemService {
 
 				registerService.update(ex_mem_ir);
 				registerService.update(ex_mem_aluoutput);
-				registerService.update(ex_mem_cond);
 				registerService.update(ex_mem_b);
+
+				Set<Process> processes = getCurrentProcesses(cycle);
+				processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.EX));
+				processMap.put(cycle, processes);
 			}
 		}
 	}
 
-	private Set<Process> getLastCycleProcesses(int cycle) {
-		return null == processMap.get(cycle - 1) ? new HashSet<Process>() : processMap.get(cycle - 1);
+	private String resolveRsValue(String opcode, Register register) {
+		String rs = InstructionUtil.getRs(opcode);
+		if (registerDataMap.containsKey(rs)) {
+			switch(registerDataMap.get(rs)) {
+			case EX:
+				return registerService.find("EX/MEM.ALUOutput").getValue();
+			case MEM:
+				return registerService.find("MEM/WB.ALUOutput").getValue();
+			case NIL:
+			default:
+			}
+		}
+		return register.getValue();
+	}
+
+	private String resolveRtValue(String opcode, Register register) {
+		String rt = InstructionUtil.getRt(opcode);
+		if (registerDataMap.containsKey(rt)) {
+			switch(registerDataMap.get(rt)) {
+			case EX:
+				return registerService.find("EX/MEM.ALUOutput").getValue();
+			case MEM:
+				return registerService.find("MEM/WB.ALUOutput").getValue();
+			case NIL:
+			default:
+			}
+		}
+		return register.getValue();
 	}
 
 	private void decode(int cycle) {
@@ -263,8 +351,46 @@ public class SystemServiceImpl implements SystemService {
 				}
 			}
 			if (hasIF) {
+				if (fetch) {
+					fetch = !fetch;
+					return;
+				}
+
+				Register pc = registerService.find("pc");
 				Register if_id_ir = registerService.find("IF/ID.IR");
 				Register if_id_npc = registerService.find("IF/ID.NPC");
+
+				String opcode = if_id_ir.getValue();
+				OperationParams params = buildOperationParams(if_id_ir);
+				if (params.getOperation().equals(Operation.BRANCH) && params.getOp().equals(Op.BNEZ)) {
+					String registerId = InstructionUtil.getRs(opcode);
+					if (registerDataMap.containsKey(registerId) && registerDataMap.get(registerId).equals(DataLocation.EX)) {
+						return;
+					} else {
+						String nextPC = incrementPC(pc);
+						Register register = registerService.find("R" + Integer.parseInt(registerId, 2));
+						if (AluUtil.executeNEZ(register)) {
+							String branchAddress = BinaryHexUtil.toNBitHex(Long.parseLong(nextPC, 16) + Long.parseLong(InstructionUtil.getImm(opcode), 16) * 4, 4);
+							if_id_npc.setValue(branchAddress);
+							pc.setValue(branchAddress);
+
+							Register ex_mem_cond = registerService.find("EX/MEM.cond");
+							ex_mem_cond.setValue("1");
+							registerService.update(ex_mem_cond);
+						} else {
+							if_id_npc.setValue(nextPC);
+							pc.setValue(nextPC);
+						}
+						registerService.update(if_id_npc);
+						registerService.update(pc);
+						
+						Set<Process> processes = getCurrentProcesses(cycle);
+						processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.ID));
+						processMap.put(cycle, processes);
+						
+						return;
+					}
+				}
 
 				Register id_ex_a = registerService.find("ID/EX.A");
 				Register id_ex_b = registerService.find("ID/EX.B");
@@ -272,7 +398,6 @@ public class SystemServiceImpl implements SystemService {
 				Register id_ex_npc = registerService.find("ID/EX.NPC");
 				Register id_ex_ir = registerService.find("ID/EX.IR");
 
-				String opcode = if_id_ir.getValue();
 				Register rs = registerService.find("R" + Integer.parseInt(InstructionUtil.getRs(opcode), 2));
 				Register rt = registerService.find("R" + Integer.parseInt(InstructionUtil.getRt(opcode), 2));
 
@@ -280,49 +405,70 @@ public class SystemServiceImpl implements SystemService {
 				id_ex_b.setValue(rt.getValue());
 				id_ex_imm.setValue(InstructionUtil.getImm(opcode));
 				id_ex_npc.setValue(if_id_npc.getValue());
-				id_ex_ir.setValue(if_id_ir.getValue());
+				id_ex_ir.setValue(opcode);
 
 				registerService.update(id_ex_a);
 				registerService.update(id_ex_b);
 				registerService.update(id_ex_imm);
 				registerService.update(id_ex_npc);
 				registerService.update(id_ex_ir);
+
+				Set<Process> processes = getCurrentProcesses(cycle);
+				processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.ID));
+				processMap.put(cycle, processes);
 			}
 		}
 	}
 
-	private void fetch(int cycle) {
-		Register pc = registerService.find("PC");
-		Set<Process> processes = getCurrentProcesses(cycle);
-		processes.add(Process.newInstance(pc.getValue(), ProcessStatus.IF));
-		processMap.put(cycle, processes);
-		
-		Register if_id_ir = registerService.find("IF/ID.IR");
-		String opcode = fetchInstruction(pc.getValue());
-		if_id_ir.setValue(opcode);
+	private OperationParams buildOperationParams(Register ir) {
+		String opcode = ir.getValue();
+		String operationCode = InstructionUtil.getOperationCode(opcode);
+		Operation operation = InstructionUtil.getOperation(operationCode);
+		OperationParams.Builder builder = new OperationParams.Builder().opcode(opcode).operationCode(operationCode).operation(operation);
 
-		Register if_id_npc = registerService.find("IF/ID.NPC");
-		if (isExMemCondSet()) {
-			Register ex_mem_aluoutput = registerService.find("EX/MEM.ALUOutput");
-			if_id_npc.setValue(ex_mem_aluoutput.getValue());
-			pc.setValue(ex_mem_aluoutput.getValue());
-		} else {
-			String nextPC = incrementPC(pc);
-			if_id_npc.setValue(nextPC);
-			pc.setValue(nextPC);
+		switch(operation) {
+		case ALU:
+			Func func = InstructionUtil.getFunc(InstructionUtil.getFuncCode(opcode));
+			builder.func(func);
+			break;
+
+		case IMM:
+		case LOAD_STORE:
+		case BRANCH:
+			Op op = InstructionUtil.getOp(operationCode);
+			builder.op(op);
+			break;
+
+		case INVALID:
+		default:
+			break;
 		}
 
+		return builder.build();
+	}
+
+	private void fetch(int cycle) {
+		Register pc = registerService.find("PC");
+		String nextPC = incrementPC(pc);
+		Register if_id_ir = registerService.find("IF/ID.IR");
+		Register if_id_npc = registerService.find("IF/ID.NPC");
+
+		String opcode = fetchInstruction(pc.getValue());
+		if_id_ir.setValue(opcode);
+		if_id_npc.setValue(nextPC);
+		pc.setValue(nextPC);
+
 		registerService.update(if_id_ir);
-		registerService.update(pc);
 		registerService.update(if_id_npc);
+		registerService.update(pc);
+
+		Set<Process> processes = getCurrentProcesses(cycle);
+		processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.IF));
+		processMap.put(cycle, processes);
 	}
 
 	private Set<Process> getCurrentProcesses(int cycle) {
 		return null == processMap.get(cycle) ? new HashSet<Process>() : processMap.get(cycle);
-	}
-
-	private boolean isExMemCondSet() {
-		return registerService.find("EX/MEM.cond").getValue().equals("0000000000000000000000000000000000000000000000000000000000000001");
 	}
 
 	private String fetchInstruction(String startAddress) {
@@ -337,6 +483,11 @@ public class SystemServiceImpl implements SystemService {
 
 	private String incrementPC(Register pc) {
 		int nextPC = Integer.parseInt(pc.getValue(), 16) + 4;
+		return BinaryHexUtil.toNBitHex(nextPC, 4);
+	}
+
+	private String decrementPC(Register pc) {
+		int nextPC = Integer.parseInt(pc.getValue(), 16) - 4;
 		return BinaryHexUtil.toNBitHex(nextPC, 4);
 	}
 
