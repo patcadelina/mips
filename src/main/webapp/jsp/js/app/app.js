@@ -13,6 +13,6 @@ POST ../memory Usage: create instruction (accepts instruction collection json) I
 window.App = {
     initUrl : '../api/system/init',
 	memoryUrl : '../api/memory',
-    registerUrl : '../api/registers',
+    registerUrl : '../api/system/registers',
     pipelineUrl : '../api/clock'
 };

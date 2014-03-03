@@ -46,6 +46,7 @@
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/views/EditorView.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/views/RegisterView.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/views/MIPSInternalRegisterView.js"></script>
+	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/views/MemoryView.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/routes/MainRoute.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/main.js"></script>
 	
@@ -151,11 +152,14 @@
 				<form class="navbar-form navbar-left" role="search">
 				  <div class="form-group">
 				  	<span>Display Memory Address:</span>
-				    <input type="text" class="form-control" placeholder="Start">
-				    <input type="text" class="form-control" placeholder="End">
+				    <input id="memStart" type="text" class="form-control" placeholder="Start">
+				    <input id="memEnd" type="text" class="form-control" placeholder="End">
 				  </div>
-				  <button type="submit" class="btn btn-default">Display</button>
+				  <button name="fetchMem" type="button" class="btn btn-default">Display</button>
 				</form>	
+				<table class="table table-striped" id="memoryTable">
+						 
+				</table>
 				</div>
 				<div class="tab-pane fade in" id="registers">
 					<div>

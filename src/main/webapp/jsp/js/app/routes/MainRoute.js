@@ -18,20 +18,9 @@ var MainRouter = Backbone.Router.extend({
 				   		model: editorModel
 				   	});
 				   	editorView.render();
-				   	
-				   	//Declare the Register View
-				   	var registerCollection = new RegisterCollection();
-				    var sampleRegister = new RegisterModel();
-				    sampleRegister.set('registerName', 'R0');
-				    sampleRegister.set('registerValue', '0000');
-				    registerCollection.add(sampleRegister);
-				   	var registerView = new RegisterView({
-				   		el: "body",
-				   		collection: registerCollection
-				   	});
-				   	registerView.render();
-				   	
 				   	//Declare the MIPS Register View
+				    var sampleRegister = new RegisterModel();
+				   	
 				   	var mipsRegisterCollection = new RegisterCollection();
 				    var sampleMipsRegister = sampleRegister.clone();
 				    sampleMipsRegister.set('registerName', 'IF/ID.IR');
@@ -42,6 +31,14 @@ var MainRouter = Backbone.Router.extend({
 				    	collection: mipsRegisterCollection
 				    });
 				    mipsInternalRegisterView.render();
+				    
+				    new MemoryView({
+				    	el: "body"
+				    });
+				    var registerView = new RegisterView({
+			    		el: "body"
+			    	});
+			    	registerView.render();
 			   }
 		});
 	    

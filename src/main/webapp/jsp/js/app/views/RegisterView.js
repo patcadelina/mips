@@ -2,19 +2,24 @@ var RegisterView = Backbone.View.extend({
 	
 	render: function(){
 		var html = '';
-		_.each(this.collection.models, function(model, index, list){
-			html += '<tr>';
-				html += '<td>' +model.get('registerName')+'</td>';
-				html += '<td>';
-					html += '<input type="text" class="registerTextBox" name="'+model.get('registerName')+'64" value="'+model.get('registerValue')+'">';
-					html += '<input type="text" class="registerTextBox" name="'+model.get('registerName')+'48" value="'+model.get('registerValue')+'">';
-					html += '<input type="text" class="registerTextBox" name="'+model.get('registerName')+'32" value="'+model.get('registerValue')+'">';
-					html += '<input type="text" class="registerTextBox" name="'+model.get('registerName')+'16" value="'+model.get('registerValue')+'">';
-				html += '</td>';
-				html += '<td><button type="button" class="btn btn-default btn-sm" id="'+model.get('registerName')+'"><span class="fa-stack fa-1x"><i class="fa fa-check fa-stack-1x"></i></span></button></td>';
-			html += '</tr>';
-		});
-		$('#registerTable').html(html);
+		$.ajax({
+			   url: App.registerUrl,
+			   type: 'GET',
+			   contentType: "application/json",
+			   dataType: "json",
+			   success: function(response) {
+				   response.forEach(function(reg){
+					   var value = reg.value!=undefined ? reg.value : "0000000000000000"; 
+						html += '<tr>';
+						html += '<td>' +reg.name+'</td>';
+						html += '<td>';
+							html += '<input type="text" name="'+reg.name+'" value="'+toHex(value,16)+'">';
+						html += '</td>';
+					html += '</tr>';
+				   });
+				   $('#registerTable').html(html);
+			   }
+		});		
 	}
 	
 });

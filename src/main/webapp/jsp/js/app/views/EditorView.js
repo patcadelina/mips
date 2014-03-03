@@ -24,7 +24,7 @@ var EditorView = Backbone.View.extend({
 		if(!hasException){
 			var data = new Array();
 			for(var i=0; i<finalInstructionStack.length; i++){
-				var line = {line : i, command: finalInstructionStack[i]};
+				var line = {line : (i+1), command: finalInstructionStack[i]};
 				data.push(line);
 			}
 			$.ajax({
@@ -33,7 +33,7 @@ var EditorView = Backbone.View.extend({
 				   type: 'POST',
 				   contentType: "application/json",
 				   success: function(response) {
-				     window.alert('sent');
+				     
 				   }
 			});
 		}

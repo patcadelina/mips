@@ -539,3 +539,29 @@ function formatSyntax(tokenizedString, lineNumber){
 	}
 }
 
+function toHex(binary, padTo){
+	var num = parseInt(binary, 2).toString(16);
+	var str = ''+num;
+	var finalString = "";
+	for(var i=str.length; i<padTo; i++){
+		finalString += "0";
+	}
+	finalString+=str;
+	return finalString.toUpperCase();
+}
+
+function toBinary(hex){
+	var str = "";
+	for(var i=0; i<hex.length; i++){
+		var num = ''+parseInt(hex.charAt(i), 16).toString(2);
+		var finalBinString = "";
+		for(var j=num.length; j<4; j++){
+			finalBinString +="0";
+		}
+		finalBinString+=num;
+		str += finalBinString;
+	}
+	
+	return str;
+}
+
