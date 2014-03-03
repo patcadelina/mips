@@ -2,6 +2,7 @@ editor = '';
 
 var labelStack = new Array();
 var registers = new Array();
+var finalInstructionStack = new Array();
 var iTypeKeywords = ["BNEZ", "LD", "SD", "DADDIU", "ANDI"];
 var rTypeKeywords = ["DADDU", "DSUBU", "OR", "DSLLV", "SLT"];
 var jTypeKeywords = ["J"];
@@ -9,6 +10,9 @@ var errorStack = new Array();
 
 for(var registerNum=0; registerNum<=31; registerNum++){
 	registers.push("R"+(''+registerNum));
+	if(registerNum>=0 && registerNum<=9){ // for R01 - R09
+		registers.push("R0"+(''+registerNum));
+	}
 }
 //tells if a string is a number
 function isNumeric(str){
@@ -30,12 +34,14 @@ function isAlpha(str){
 function initializeEditor(){
 	editor = ace.edit("editorText");
     editor.setTheme("ace/theme/chrome");
+    editor.setHighlightActiveLine(true);
     editor.getSession().setMode("ace/mode/assembly_x86");
 }
 
 function parseSourceCode(){
 	errorStack = new Array();//empty the error stack
 	labelStack = new Array();//empty the label stack
+	finalInstructionStack = new Array();//empty the instruction stack
 	//iterate over the source code line by line, lexical analysis
 	var lines = editor.session.doc.getAllLines();
 	var hasException = false;
@@ -48,6 +54,7 @@ function parseSourceCode(){
 	    	var isValid = getLabelPreInformation(tokenizedString,i+1);
 		    if(!isValid){
 		    	hasException = true;
+		    	editor.gotoLine(i+1);
 		    	break;
 		    }
 	    }
@@ -61,6 +68,7 @@ function parseSourceCode(){
 		    if(tokenizedString.length>1){ // make sure line is not a empty line
 		    	var isValid = validateSyntax(tokenizedString,i+1);
 			    if(!isValid){
+			    	editor.gotoLine(i+1);
 			    	hasException = true;
 			    	break;
 			    }
@@ -68,8 +76,19 @@ function parseSourceCode(){
 		    	if(tokenizedString[0]!=""){
 		    		errorStack.push("Invalid Instruction Exception at line number " + (i+1));
 		    		hasException = true;
+		    		editor.gotoLine(i+1);
 			    	break;
 		    	}
+		    }
+		}
+		
+		//Third pass through for line by line formatting
+		for (var i=0; i<lines.length; i++) {
+		    var noSpacesBetweenTokens = lines[i].replace(/\s+/g, " "); //trim all spaces between a token and replace it with a space
+		    var noLeadingAndTrailingSpaces = noSpacesBetweenTokens.replace(/^\s+|\s+$/g, ""); //remove all leading and trailing spaces
+		    var tokenizedString = noLeadingAndTrailingSpaces.split(" ");
+		    if(tokenizedString.length>1){ // make sure line is not a empty line
+		    	formatSyntax(tokenizedString);
 		    }
 		}
 	}
@@ -77,11 +96,9 @@ function parseSourceCode(){
 	if(hasException){
 		errorStack.push("Compilation Failed. Please check stack trace for details");
 	}else{
-		errorStack.push("Compilation Success... Running the program...");
+		errorStack.push("Compilation Success... Running the program...");	
 	}
-	
-	
-	
+	return hasException;
 }
 
 function getLabelPreInformation(tokenizedString, lineNumber){
@@ -190,11 +207,11 @@ function validateHex(hexString, hasHash){
 	var isValidHex = false;
 	var i=1;
 	if(hasHash){
-		if(hexString.charAt(0)!="#"||hexString.length!=5){
+		if(hexString.charAt(0)!="#"||hexString.length>5||hexString.length<2){
 			return false;
 		}
 	}else{
-		if(hexString.length!=4){
+		if(hexString.length>4||hexString.length<1){
 			return false;
 		}
 		i=0;
@@ -433,7 +450,92 @@ function evaluateJType(tokenizedString, lineNumber){
 	return isValid;
 }
 
+function formatRegister(register){
+	var hasComma = register.charAt(register.length-1)==',' ? true : false;
+	if(hasComma){
+		register = register.substring(0, register.length-1);
+	}
+	var registerNumber = parseInt(register.substring(1, register.length));
+	var formattedRegister = "R" + (''+registerNumber);
+	if(hasComma){
+		formattedRegister += ",";
+	}
+	return formattedRegister;
+}
+
+function formatHex(imm){
+	var hasHash = imm.charAt(0)=='#' ? true : false;
+	var formattedHex = "";
+	if(hasHash){
+		imm = imm.substring(1,imm.length);
+		formattedHex = "#";
+	}
+	//pad 0's
+	for(var i=imm.length; i<4; i++){
+		formattedHex += "0";
+	}
+	return formattedHex+imm;
+}
+
 function getErrorStack(){
 	return errorStack;
+}
+
+function formatSyntax(tokenizedString, lineNumber){
+	//see if it has a label and trim it, label is at [0] and it suppose to end with :
+	var hasLabel = false;
+	var lineLabel = "";
+	if(tokenizedString[0].charAt(tokenizedString[0].length-1)==":"){
+		hasLabel = true;
+		lineLabel = tokenizedString[0];
+		var tempTokenizedString = new Array();
+		for(var i=1; i<tokenizedString.length; i++){ // extract the label from the old string
+			tempTokenizedString[i-1] = tokenizedString[i];
+		}
+		tokenizedString = tempTokenizedString; // assign the tokenized string with no label to the main tokenized string
+	}
+		
+	//end label validation
+	//start instruction type validation
+	var instruction = tokenizedString[0];
+	var instructionType = getInstructionType(instruction);
+	var finalString = instruction + " ";
+	if(instructionType!=null){
+		if(instructionType=="I"){
+			if(instruction=="LD" || instruction=="SD"){
+				var rd = formatRegister(tokenizedString[1]);
+				var regExp = /\(([^)]+)\)/;
+				var matches = regExp.exec(tokenizedString[2]);
+				var register = matches[1];
+				var imm = tokenizedString[2].substring(0,tokenizedString[2].indexOf("("));
+				var registerOffset = formatRegister(register);
+				var immOffset = formatHex(imm);
+				finalString += rd + " " + immOffset+"("+registerOffset+")";
+			}else if(instruction=="BNEZ"){
+				var rd = formatRegister(tokenizedString[1]);
+				var label = tokenizedString[2];
+				finalString += rd + " " + label;
+			}else{
+				var rd = formatRegister(tokenizedString[1]);
+				var rs = formatRegister(tokenizedString[2]);
+				var imm = formatHex(tokenizedString[3]);
+				finalString += rd + " " + rs + " " + imm;
+			}
+		}else if(instructionType=="R"){
+			var rd = formatRegister(tokenizedString[1]);
+			var rs = formatRegister(tokenizedString[2]);
+			var rt = formatRegister(tokenizedString[3]);
+			finalString += rd + " " + rs + " " + rt;
+		}else if(instructionType=="J"){
+			var label = tokenizedString[1];
+			finalString += label;
+		}
+		if(hasLabel){
+			finalString = lineLabel + " " + finalString;
+		}
+		finalInstructionStack.push(finalString);
+	}else{
+		errorStack.push("An Invalid instruction is found at line " + lineNumber);
+	}
 }
 

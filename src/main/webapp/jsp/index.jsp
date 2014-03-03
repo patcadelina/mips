@@ -38,6 +38,7 @@
 <!--End Custom CSS Import -->
 
 <!--Start Import App JS Files-->
+	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/app.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/script.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/models/EditorModel.js"></script>
 	<script type="text/javascript" src="${pageContext.request.contextPath}/jsp/js/app/models/RegisterModel.js"></script>
@@ -83,8 +84,8 @@
 						<ul class="nav navbar-nav" style="float: right;">
 							<li>
 								<div class="btn-group" style="position: relative;top: 7px; left: -60px;">
-								  <button type="button" class="btn btn-default active"><i class="fa fa-flag-checkered"></i> Full Execution Mode</button>
-								  <button type="button" class="btn btn-default"><i class="fa fa fa-chevron-right"></i> Step Through Execution Mode</button>
+								  <button name="fexe" type="button" class="btn btn-default active"><i class="fa fa-flag-checkered"></i> Full Execution Mode</button>
+								  <button name="stexe" type="button" class="btn btn-default"><i class="fa fa fa-chevron-right"></i> Step Through Execution Mode</button>
 								
 								</div>
 								 <button name="compile" type="button" class="btn btn-default btn-sm" style="border-radius:10px;position: relative;top: 5px;">
