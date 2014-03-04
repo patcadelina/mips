@@ -29,8 +29,6 @@ public class MemoryAddressResource {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response find(@QueryParam(value = "from") String startAddress, @QueryParam(value = "to") String endAddress) {
-		System.out.println("startAddress: " + startAddress + ", endAddress: " + endAddress);
-		
 		if (isMemoryAddressValid(Integer.parseInt(startAddress, HEX), Integer.parseInt(endAddress, HEX))) {
 			List<MemoryAddress> memoryAddresses = memoryAddressService.find(startAddress, endAddress);
 			return Response.ok().entity(new GenericEntity<List<MemoryAddress>>(memoryAddresses) {}).build();

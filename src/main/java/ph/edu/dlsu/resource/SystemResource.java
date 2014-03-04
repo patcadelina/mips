@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -35,6 +36,7 @@ public class SystemResource {
 		try {
 			registerService.init();
 			memoryAddressService.init();
+			systemService.init();
 		} catch (Exception e) {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
@@ -49,11 +51,10 @@ public class SystemResource {
 		return Response.ok().entity(new GenericEntity<List<Register>>(registers) {}).build();
 	}
 
-	@GET
+	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("clock/{cycle}")
 	public Response clock(@PathParam("cycle") Integer cycle) throws IOException {
-		System.out.println("Processing cycle: " + cycle);
 		Pipeline pipeline = systemService.runCycle(cycle);
 		return Response.ok().entity(pipeline).build();
 	}

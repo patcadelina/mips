@@ -8,4 +8,6 @@ public interface SystemService {
 
 	Pipeline runCycle(int cycle) throws IOException;
 
+	void init();
+
 }

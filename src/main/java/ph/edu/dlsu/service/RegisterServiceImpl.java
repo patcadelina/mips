@@ -52,7 +52,7 @@ public class RegisterServiceImpl implements RegisterService {
 		registerMap.put("ID/EX.B", Register.newInstance("ID/EX.B", null));
 		registerMap.put("ID/EX.NPC", Register.newInstance("ID/EX.NPC", null));
 		registerMap.put("ID/EX.IR", Register.newInstance("ID/EX.IR", null));
-		registerMap.put("ID/EX.IMM", Register.newInstance("ID/EX.Imm", null));
+		registerMap.put("ID/EX.Imm", Register.newInstance("ID/EX.Imm", null));
 		registerMap.put("EX/MEM.IR", Register.newInstance("EX/MEM.IR", null));
 		registerMap.put("EX/MEM.ALUOutput", Register.newInstance("EX/MEM.ALUOutput", null));
 		registerMap.put("EX/MEM.cond", Register.newInstance("EX/MEM.cond", "0"));
@@ -84,7 +84,7 @@ public class RegisterServiceImpl implements RegisterService {
 		registers.add(registerMap.get("ID/EX.B"));
 		registers.add(registerMap.get("ID/EX.NPC"));
 		registers.add(registerMap.get("ID/EX.IR"));
-		registers.add(registerMap.get("ID/EX.IMM"));
+		registers.add(registerMap.get("ID/EX.Imm"));
 		registers.add(registerMap.get("EX/MEM.IR"));
 		registers.add(registerMap.get("EX/MEM.ALUOutput"));
 		registers.add(registerMap.get("EX/MEM.cond"));

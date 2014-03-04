@@ -38,4 +38,9 @@ public class Process {
 		this.status = status;
 	}
 
+	@Override
+	public String toString() {
+		return "Process [address=" + address + ", status=" + status + "]";
+	}
+
 }

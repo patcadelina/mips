@@ -243,7 +243,7 @@ public class InstructionUtil {
 		switch (opcode) {
 		case "101101": return Func.DADDU;
 		case "101111": return Func.DSUBU;
-		case "100111": return Func.OR;
+		case "100101": return Func.OR;
 		case "010100": return Func.DSLLV;
 		case "101010": return Func.SLT;
 		default: return Func.INVALID;

@@ -25,10 +25,17 @@ public class SystemServiceImpl implements SystemService {
 
 	private static final int INSTRUCTION_OFFSET = 3;
 	private static boolean fetch = false;
+	private static Map<Integer, Set<Process>> processMap = new HashMap<Integer, Set<Process>>();
+	private static Map<String, DataLocation> registerDataMap = new HashMap<String, DataLocation>();
+
 	private RegisterService registerService = new RegisterServiceImpl();
 	private MemoryAddressService memoryAddressService = new MemoryAddressServiceImpl();
-	private Map<Integer, Set<Process>> processMap = new HashMap<Integer, Set<Process>>();
-	private Map<String, DataLocation> registerDataMap = new HashMap<String, DataLocation>();
+
+	@Override
+	public void init() {
+		processMap = new HashMap<Integer, Set<Process>>();
+		registerDataMap = new HashMap<String, DataLocation>();
+	}
 
 	@Override
 	public Pipeline runCycle(int cycle) throws IOException {
@@ -45,15 +52,16 @@ public class SystemServiceImpl implements SystemService {
 		Set<Process> lastCycle = getLastCycleProcesses(cycle);
 		if (!lastCycle.isEmpty()) {
 			boolean hasMEM = false;
+			String address = "";
 			for (Process p : lastCycle) {
 				if(ProcessStatus.MEM.equals(p.getStatus())) {
 					p.setStatus(ProcessStatus.WB);
+					address = p.getAddress();
 					hasMEM = true;
 					break;
 				}
 			}
 			if (hasMEM) {
-				Register pc = registerService.find("pc");
 				Register mem_wb_ir = registerService.find("MEM/WB.IR");
 				Register mem_wb_aluoutput = registerService.find("MEM/WB.ALUOutput");
 				Register mem_wb_lmd = registerService.find("MEM/WB.LMD");
@@ -62,7 +70,7 @@ public class SystemServiceImpl implements SystemService {
 				OperationParams params = buildOperationParams(mem_wb_ir);
 				if (params.getOperation().equals(Operation.BRANCH)) {
 					Set<Process> processes = getCurrentProcesses(cycle);
-					processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.WB));
+					processes.add(Process.newInstance(address, ProcessStatus.WB));
 					processMap.put(cycle, processes);
 					return;
 				}
@@ -93,7 +101,7 @@ public class SystemServiceImpl implements SystemService {
 				}
 
 				Set<Process> processes = getCurrentProcesses(cycle);
-				processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.WB));
+				processes.add(Process.newInstance(address, ProcessStatus.WB));
 				processMap.put(cycle, processes);
 
 				filterRegisterDataMap();
@@ -119,15 +127,16 @@ public class SystemServiceImpl implements SystemService {
 		Set<Process> lastCycle = getLastCycleProcesses(cycle);
 		if (!lastCycle.isEmpty()) {
 			boolean hasEX = false;
+			String address = "";
 			for (Process p : lastCycle) {
 				if(ProcessStatus.EX.equals(p.getStatus())) {
 					p.setStatus(ProcessStatus.MEM);
+					address = p.getAddress();
 					hasEX = true;
 					break;
 				}
 			}
 			if (hasEX) {
-				Register pc = registerService.find("pc");
 				Register mem_wb_ir = registerService.find("MEM/WB.IR");
 				Register mem_wb_aluoutput = registerService.find("MEM/WB.ALUOutput");
 				Register mem_wb_lmd = registerService.find("MEM/WB.LMD");
@@ -140,7 +149,7 @@ public class SystemServiceImpl implements SystemService {
 				OperationParams params = buildOperationParams(ex_mem_ir);
 				if (params.getOperation().equals(Operation.BRANCH)) {
 					Set<Process> processes = getCurrentProcesses(cycle);
-					processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.MEM));
+					processes.add(Process.newInstance(address, ProcessStatus.MEM));
 					processMap.put(cycle, processes);
 					return;
 				}
@@ -191,7 +200,7 @@ public class SystemServiceImpl implements SystemService {
 				registerService.update(mem_wb_lmd);
 
 				Set<Process> processes = getCurrentProcesses(cycle);
-				processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.MEM));
+				processes.add(Process.newInstance(address, ProcessStatus.MEM));
 				processMap.put(cycle, processes);
 			}
 		}
@@ -215,15 +224,16 @@ public class SystemServiceImpl implements SystemService {
 		Set<Process> lastCycle = getLastCycleProcesses(cycle);
 		if (!lastCycle.isEmpty()) {
 			boolean hasID = false;
+			String address = "";
 			for (Process p : lastCycle) {
 				if(ProcessStatus.ID.equals(p.getStatus())) {
 					p.setStatus(ProcessStatus.EX);
+					address = p.getAddress();
 					hasID = true;
 					break;
 				}
 			}
 			if (hasID) {
-				Register pc = registerService.find("pc");
 				Register ex_mem_ir = registerService.find("EX/MEM.IR");
 				Register ex_mem_aluoutput = registerService.find("EX/MEM.ALUOutput");
 				Register ex_mem_b = registerService.find("EX/MEM.B");
@@ -243,7 +253,7 @@ public class SystemServiceImpl implements SystemService {
 						registerService.update(ex_mem_cond);
 
 						Set<Process> processes = getCurrentProcesses(cycle);
-						processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.EX));
+						processes.add(Process.newInstance(address, ProcessStatus.EX));
 						processMap.put(cycle, processes);
 					}
 					return;
@@ -303,7 +313,7 @@ public class SystemServiceImpl implements SystemService {
 				registerService.update(ex_mem_b);
 
 				Set<Process> processes = getCurrentProcesses(cycle);
-				processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.EX));
+				processes.add(Process.newInstance(address, ProcessStatus.EX));
 				processMap.put(cycle, processes);
 			}
 		}
@@ -343,9 +353,11 @@ public class SystemServiceImpl implements SystemService {
 		Set<Process> lastCycle = getLastCycleProcesses(cycle);
 		if (!lastCycle.isEmpty()) {
 			boolean hasIF = false;
+			String address = "";
 			for (Process p : lastCycle) {
 				if(ProcessStatus.IF.equals(p.getStatus())) {
 					p.setStatus(ProcessStatus.ID);
+					address = p.getAddress();
 					hasIF = true;
 					break;
 				}
@@ -356,7 +368,7 @@ public class SystemServiceImpl implements SystemService {
 					return;
 				}
 
-				Register pc = registerService.find("pc");
+				Register pc = registerService.find("PC");
 				Register if_id_ir = registerService.find("IF/ID.IR");
 				Register if_id_npc = registerService.find("IF/ID.NPC");
 
@@ -385,7 +397,7 @@ public class SystemServiceImpl implements SystemService {
 						registerService.update(pc);
 						
 						Set<Process> processes = getCurrentProcesses(cycle);
-						processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.ID));
+						processes.add(Process.newInstance(address, ProcessStatus.ID));
 						processMap.put(cycle, processes);
 						
 						return;
@@ -414,7 +426,7 @@ public class SystemServiceImpl implements SystemService {
 				registerService.update(id_ex_ir);
 
 				Set<Process> processes = getCurrentProcesses(cycle);
-				processes.add(Process.newInstance(decrementPC(pc), ProcessStatus.ID));
+				processes.add(Process.newInstance(address, ProcessStatus.ID));
 				processMap.put(cycle, processes);
 			}
 		}
@@ -454,6 +466,9 @@ public class SystemServiceImpl implements SystemService {
 		Register if_id_npc = registerService.find("IF/ID.NPC");
 
 		String opcode = fetchInstruction(pc.getValue());
+		if (null == opcode || "".equals(opcode)) {
+			return;
+		}
 		if_id_ir.setValue(opcode);
 		if_id_npc.setValue(nextPC);
 		pc.setValue(nextPC);
@@ -476,6 +491,9 @@ public class SystemServiceImpl implements SystemService {
 		List<MemoryAddress> memoryAddresses = memoryAddressService.find(startAddress, end);
 		StringBuilder builder = new StringBuilder();
 		for (MemoryAddress ma : memoryAddresses) {
+			if (null == ma.getValue()) {
+				break;
+			}
 			builder.append(ma.getValue());
 		}
 		return builder.toString();

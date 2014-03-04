@@ -220,7 +220,7 @@ public class InstructionUtilTest {
 	@Test
 	public void shouldClassifyAsOR() {
 		Func expected = Func.OR;
-		Func actual = InstructionUtil.getFunc("100111");
+		Func actual = InstructionUtil.getFunc("100101");
 		Assert.assertEquals(expected, actual);
 	}
 
