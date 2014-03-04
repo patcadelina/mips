@@ -91,16 +91,16 @@
 								<div class="btn-group" style="position: relative;top: 7px; left: -15px;">
 								  <button id="fexe" name="fexe" type="button" class="btn btn-default active"><i class="fa fa-flag-checkered"></i> Full Execution Mode</button>
 								  <button id="stexe" name="stexe" type="button" class="btn btn-default"><i class="fa fa fa-chevron-right"></i> Step Through Execution Mode</button>
+								  <input type="hidden" id="mode" value="full">
+								  <input type="hidden" id="lastInstruction" value="">
 								</div>
 								<div class="btn-group" style="position: relative;top: 7px; left: -4px;">
-								  <button disabled id="prevCc" type="button" class="btn btn-default ccControl"><i class="fa fa-arrow-circle-o-left"></i></button>
-								  <button disabled id="nextCc"  type="button" class="btn btn-default ccControl"><i class="fa fa fa-arrow-circle-o-right"></i></button>
+								    <button name="compile" type="button" class="btn btn-default">
+											<i class="fa fa-cogs"></i> Compile
+									</button>
+								  <button disabled name="nextCc" id="nextCc"  type="button" class="btn btn-default ccControl"><i class="fa fa fa-arrow-circle-o-right"></i> Next</button>
+								  <button name="clear" id="nextCc"  type="button" class="btn btn-default"><i class="fa fa fa-retweet"></i> Clear</button>
 								</div>
-								 <button name="compile" type="button" class="btn btn-default btn-sm" style="border-radius:10px;position: relative;top: 5px;">
-										<span class="fa-stack fa-1x">
-											<i class="fa fa-play fa-stack-1x"></i>
-										</span>
-								</button>
 							</li>
 						</ul>
 					</div>
@@ -109,7 +109,7 @@
 			</nav>
 		</div>
 		<div style="">
-		<span id="statusCc" class="label label-warning" style="position: relative; float: right; top: 15px; right: 44px; display:none;"><i class="fa fa-clock-o fa-2x"></i></span>
+		<span id="statusCc" class="label label-warning" style="position: relative; float: right; top: 15px; right: 44px; display:none;" data-placement="left" data-content="Opps... It seems the you reached the final cycle"><i class="fa fa-clock-o fa-2x"></i> 0</span>
 			<ul class="nav nav-tabs">
 				<li class="active">
 					<a href="#editor" data-toggle="tab">
@@ -147,6 +147,19 @@
 				<div class="tab-pane fade in" id="pipelineMap">
 					<div>
 						<table class="table table-striped">
+							<thead id="clockCycle">
+							
+							</thead>
+							<tbody id="pipelineDetails">
+							
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="tab-pane fade in" id="internalRegisters">
+					<div id="">
+					<h3>Opcode Table</h3>
+					<table class="table table-striped">
 							<thead>
 								<tr>
 									<td>Line Number</td>
@@ -162,10 +175,8 @@
 							
 							</tbody>
 						</table>
-					</div>
-				</div>
-				<div class="tab-pane fade in" id="internalRegisters">
-					<div id="">
+						<br>
+						<h3>Opcode Table</h3>
 						<table class="table table-striped" id="internalRegistersTable">
 						 
 						</table>

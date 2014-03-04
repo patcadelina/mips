@@ -1,5 +1,7 @@
 var PipelineView = Backbone.View.extend({
 	
+	currentCc: 1,
+	
 	renderOpcodeTable: function(instructionAddress){
 		var html = '';
 		var lineCounter = 0;
@@ -30,13 +32,46 @@ var PipelineView = Backbone.View.extend({
 			
 			lineNum++;
 			mul++;
-			
+			$("#lastInstruction").val(pc);
 		});
 
 		$("#opcodeTable").html(html);
 	},
 	
+	initializePipelineMap: function(){
+		for(var lineNum=0; lineNum<finalInstructionStack.length; lineNum++){
+			var pipeLineStatus = new Array();
+			var pc = toHex(parseInt(''+(lineNum*4)).toString(2),4);
+			var process = {
+					lineNumber : pc,
+					instruction : finalInstructionStack[lineNum],
+					pipeLine: pipeLineStatus
+			};
+			pipelineMap.push(process);
+		}
+		console.log(pipelineMap);
+	},
+	
 	renderPipelineMap: function(){
+		var clockCycleHtml = "<tr><td>&nbsp</td>";
+			for(var i=0; i<this.currentCc; i++){
+				clockCycleHtml +="<td>" + (i+1) + "</td>";
+			}
+			this.currentCc = this.currentCc + 1;
+		clockCycleHtml+= "</tr>";
+		$("#clockCycle").html(clockCycleHtml);
 		
+		var pipelineHtml = "";
+		
+		for(var i=0; i<pipelineMap.length; i++){
+			pipelineHtml +="<tr>";
+			pipelineHtml +="<td>" + pipelineMap[i].instruction + "</td>";
+			for(var j=0; j<pipelineMap[i].pipeLine.length; j++){
+				pipelineHtml +="<td>" + pipelineMap[i].pipeLine[j] + "</td>";
+			}
+			pipelineHtml +="</tr>";
+		}
+		
+		$("#pipelineDetails").html(pipelineHtml);
 	}
 });

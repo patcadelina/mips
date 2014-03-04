@@ -7,6 +7,7 @@ var iTypeKeywords = ["BNEZ", "LD", "SD", "DADDIU", "ANDI"];
 var rTypeKeywords = ["DADDU", "DSUBU", "OR", "DSLLV", "SLT"];
 var jTypeKeywords = ["J"];
 var errorStack = new Array();
+var pipelineMap = new Array();
 
 for(var registerNum=0; registerNum<=31; registerNum++){
 	registers.push("R"+(''+registerNum));
@@ -317,27 +318,32 @@ function evaluateIType(tokenizedString, lineNumber){
 				isValid = false;
 				errorStack.push("Invalid register constant at line number " + lineNumber);
 			}else{
-				//check the offset with the following pattern 0000(register)
-				var regExp = /\(([^)]+)\)/;
-				var matches = regExp.exec(tokenizedString[2]);
-				var register = matches[1];
-				var imm = tokenizedString[2].substring(0,tokenizedString[2].indexOf("("));
-				var endImm = tokenizedString[2].substring(tokenizedString[2].indexOf(")")+1);
-				if(endImm==""){
-					var isValidRegister = validateRegister(register);
-					if(!isValidRegister){
-						isValid = false;
-						errorStack.push("Invalid register offset " + lineNumber);
-					}else{
-						var isValidImm = validateHex(imm, false);
-						if(!isValidImm){
-							isValid = false;
-							errorStack.push("Invalid imm offset at line number " + lineNumber);
-						}
-					}
-				}else{
+				if(tokenizedString[2].indexOf("(")==-1||tokenizedString[2].indexOf(")")==-1|| (tokenizedString[2].indexOf("(")>tokenizedString[2].indexOf(")"))){
 					isValid = false;
-					errorStack.push("Invalid format exception at line number " + lineNumber);
+					errorStack.push("Invalid imm offset at line number " + lineNumber);
+				}else{
+					//check the offset with the following pattern 0000(register)
+					var regExp = /\(([^)]+)\)/;
+					var matches = regExp.exec(tokenizedString[2]);
+					var register = matches[1];
+					var imm = tokenizedString[2].substring(0,tokenizedString[2].indexOf("("));
+					var endImm = tokenizedString[2].substring(tokenizedString[2].indexOf(")")+1)
+					if(endImm==""){
+						var isValidRegister = validateRegister(register);
+						if(!isValidRegister){
+							isValid = false;
+							errorStack.push("Invalid register offset " + lineNumber);
+						}else{
+							var isValidImm = validateHex(imm, false);
+							if(!isValidImm){
+								isValid = false;
+								errorStack.push("Invalid imm offset at line number " + lineNumber);
+							}
+						}
+					}else{
+						isValid = false;
+						errorStack.push("Invalid format exception at line number " + lineNumber);
+					}
 				}
 			}
 		}
