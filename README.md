@@ -24,9 +24,19 @@ Usage:  initialize memory and registers
 Input:  NA
 Output: NA
 
+GET     ../system/registers
+Usage:  find all system/internal registers
+Input:  NA
+Output: [{"name": "PC", "value": "0000000000000000000000000000000000000000000000000000000000000000"}, ...]
+
+POST    ../system/clock/<cycle>
+Usage:  execute a clock cycle
+Input:  NA
+Output: ["clock": 1, "processes": [{"address": "0000", "stage": "IF"}]]
+
 
 GET     ../registers
-Usage:  find all registers
+Usage:  find all general purpose registers (GPRs)
 Input:  NA
 Output: [{"name": "R0", "value": "0000000000000000000000000000000000000000000000000000000000000000"}, {"name": "R1"}, ...]
 
@@ -58,7 +68,7 @@ Output: {"address": "2004", "value": "00010001"}
 POST    ../memory
 Usage:  create instruction (accepts instruction collection json)
 Input:  [{"line": 1, "command": "DADDU R1, R0, R2"}, {"line": 2, "command": "BNEZ R1, L1}, ..]
-Output: NA
+Output: [{"address": "0000", "value": "00000000"}, ...]
 
 
 Client Side
