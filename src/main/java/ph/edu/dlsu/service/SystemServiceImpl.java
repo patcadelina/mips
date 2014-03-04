@@ -29,6 +29,7 @@ public class SystemServiceImpl implements SystemService {
 	private static boolean stall = false;
 	private static Map<Integer, Set<Process>> processMap = new HashMap<Integer, Set<Process>>();
 	private static Map<String, Hazard> registerDataMap = new HashMap<String, Hazard>();
+	private static Set<Process> stalled = new HashSet<Process>();
 
 	private RegisterService registerService = new RegisterServiceImpl();
 	private MemoryAddressService memoryAddressService = new MemoryAddressServiceImpl();
@@ -122,7 +123,19 @@ public class SystemServiceImpl implements SystemService {
 	}
 
 	private Set<Process> getLastCycleProcesses(int cycle) {
-		return null == processMap.get(cycle - 1) ? new HashSet<Process>() : processMap.get(cycle - 1);
+		Set<Process> processes = new HashSet<Process>();
+		if (null == processMap.get(cycle - 1)) {
+			return processes;
+		} else {
+			processes.addAll(processMap.get(cycle - 1));
+			for (Process p : stalled) {
+				System.out.println("Adding stalled proc: " + p);
+				processes.add(p);
+			}
+			processMap.put(cycle - 1, processes);
+			stalled = new HashSet<Process>();
+			return processes;
+		}
 	}
 
 	private void mem(int cycle) {
@@ -356,13 +369,20 @@ public class SystemServiceImpl implements SystemService {
 		if (!lastCycle.isEmpty()) {
 			boolean hasIF = false;
 			String address = "";
+			Process cached = new Process();
 			for (Process p : lastCycle) {
 				if(ProcessStatus.IF.equals(p.getStatus())) {
+					cached.setAddress(p.getAddress());
+					cached.setStatus(ProcessStatus.IF);
 					p.setStatus(ProcessStatus.ID);
 					address = p.getAddress();
 					hasIF = true;
 					break;
 				}
+			}
+			if(!stalled.isEmpty()){
+				hasIF = true;
+				stalled.clear();
 			}
 			if (hasIF) {
 				if (fetch) {
@@ -380,6 +400,7 @@ public class SystemServiceImpl implements SystemService {
 					String registerId = InstructionUtil.getRs(opcode);
 					if (registerDataMap.containsKey(registerId) && registerDataMap.get(registerId).equals(DataLocation.EX)) {
 						stall = true;
+						stalled.add(cached);
 						return;
 					} else {
 						String nextPC = incrementPC(pc);
@@ -419,10 +440,12 @@ public class SystemServiceImpl implements SystemService {
 				String rtId = InstructionUtil.getRt(opcode);
 				if (registerDataMap.containsKey(rsId) && registerDataMap.get(rsId).getOp().equals(Op.LD)) {
 					stall = true;
+					stalled.add(cached);
 					return;
 				}
 				if (registerDataMap.containsKey(rtId) && registerDataMap.get(rtId).getOp().equals(Op.LD)) {
 					stall = true;
+					stalled.add(cached);
 					return;
 				}
 
