@@ -15,13 +15,6 @@ var MainRouter = Backbone.Router.extend({
 				new MenuView({
 					el: "body"
 				});
-				//Declare the Editor View
-				var editorModel = new EditorModel({});
-				var editorView = new EditorView({
-					el: "body",
-					model: editorModel
-				});
-				editorView.render();
 				//Declare the MIPS Register View
 				var mipsInternalRegisterView = new MIPSInternalRegisterView({
 					el: "body"
@@ -35,6 +28,15 @@ var MainRouter = Backbone.Router.extend({
 					el: "body"
 				});
 				registerView.render();
+				
+				//Declare the Editor View
+				var editorModel = new EditorModel({});
+				var editorView = new EditorView({
+					el: "body",
+					model: editorModel
+				});
+				editorView.setRefreshView(registerView,mipsInternalRegisterView);
+				editorView.render();
 			}
 		});
 	},

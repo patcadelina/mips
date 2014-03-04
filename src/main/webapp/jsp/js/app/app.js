@@ -15,5 +15,5 @@ window.App = {
 	memoryUrl : '../api/memory',
     registerUrl : '../api/registers',
     pipeRegisterUrl : '../api/system/registers',
-    pipelineUrl : '../api/clock'
+    executionUrl : '../api/system/clock'
 };
