@@ -35,7 +35,7 @@ public class InstructionUtilTest {
 	public void shouldDecodeOR() {
 		Instruction instruction = new Instruction();
 		instruction.setCommand("OR R1, R2, R3");
-		String expected = "00000000010000110000100000100111";
+		String expected = "00000000010000110000100000100101";
 		String actual = InstructionUtil.generateOpcode(instruction);
 		Assert.assertEquals(expected, actual);
 	}

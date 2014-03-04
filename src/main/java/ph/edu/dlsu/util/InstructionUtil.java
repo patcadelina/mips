@@ -135,7 +135,7 @@ public class InstructionUtil {
 			builder.append(BinaryHexUtil.toNBitBinary(Integer.parseInt(instArgs[2].substring(1)), 5));
 			builder.append(BinaryHexUtil.toNBitBinary(Integer.parseInt(instArgs[3].substring(1)), 5));
 			builder.append(BinaryHexUtil.toNBitBinary(Integer.parseInt(instArgs[1].substring(1)), 5));
-			builder.append("00000100111");
+			builder.append("00000100101");
 			break;
 		case "DSLLV":
 			builder.append("000000");
