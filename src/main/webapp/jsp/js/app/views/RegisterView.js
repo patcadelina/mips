@@ -33,7 +33,7 @@ var RegisterView = Backbone.View.extend({
 	
 	saveRegister: function(e){
 		var reg = $(e.target).attr("id");
-		var isValid = validateHex(reg, false);
+		var isValid = validateHex($(e.target).val(), false);
 		if(isValid){
 			var val = toBinary($(e.target).val());
 			reg = toHex(val, 16);
