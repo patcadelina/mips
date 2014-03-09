@@ -35,9 +35,9 @@ var RegisterView = Backbone.View.extend({
 		var reg = $(e.target).attr("id");
 		var isValid = validateHex($(e.target).val(), false);
 		if(isValid){
-			var val = toBinary($(e.target).val());
-			reg = toHex(val, 16);
-			val = toBinary(reg);
+			var val = toBinary($(e.target).val()); //for hex conversion
+			val = toHex(val, 16); //to pad to 16 hex
+			val = toBinary(val); //sever needs binary
 			var data = {name:reg, value:val};
 			$.ajax({
 			   url: App.registerUrl+"/"+reg,
@@ -50,10 +50,11 @@ var RegisterView = Backbone.View.extend({
 			   }
 		});
 		}else{
-			window.alert("Invalid Hex Constant in Register");
+			window.alert("Invalid Hex Constant in Register " + reg);
 			for(var i=0; i<this.registerCopy.length; i++){
 				if(this.registerCopy[i].name==reg){
-					$(e.target).val(this.registerCopy[i].val);
+					var value = registerCopy[i].value!=undefined ? registerCopy[i].value : "0000000000000000"; 
+					$(e.target).val(toHex(value,16));
 				}
 			}
 		}
