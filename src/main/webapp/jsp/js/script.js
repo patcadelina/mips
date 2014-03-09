@@ -212,7 +212,7 @@ function validateHex(hexString, hasHash){
 			return false;
 		}
 	}else{
-		if(hexString.length>4||hexString.length<1){
+		if(hexString.length<1){
 			return false;
 		}
 		i=0;
