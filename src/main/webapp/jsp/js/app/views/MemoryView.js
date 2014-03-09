@@ -40,9 +40,13 @@ var MemoryView = Backbone.View.extend({
 	
 	saveMemory: function(e){
 		var add = $(e.target).attr("id");
-		var val = toBinary($(e.target).val());
-		var data = {address:add, value:val};
-		$.ajax({
+		var isValid = validateHex($(e.target).val(), false;
+		if(isValid){
+			var val = toBinary($(e.target).val());//for hex conversion
+			val = toHex(val, 2); //to pad to 2 hex
+			val = toBinary(val); //server needs binary
+			var data = {address:add, value:val};
+			$.ajax({
 			   url: App.memoryUrl+"/"+add,
 			   data: JSON.stringify(data),
 			   dataType:"json",
@@ -52,6 +56,15 @@ var MemoryView = Backbone.View.extend({
 				
 			   }
 		});
+		}else{
+			window.alert("Invalid Hex Constant in Memory for address " + add);
+			for(var i=0; i<this.memorySet.length; i++){
+				if(this.memorySet[i].address==add){
+					var value = memorySet[i].value!=undefined ? memorySet[i].value : "0000000000000000"; 
+					$(e.target).val(toHex(value,2));
+				}
+			}	
+		}
 	}
 	
 	
