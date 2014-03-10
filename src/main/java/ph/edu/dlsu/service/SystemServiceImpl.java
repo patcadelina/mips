@@ -1,6 +1,7 @@
 package ph.edu.dlsu.service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -25,11 +26,12 @@ import ph.edu.dlsu.util.InstructionUtil;
 public class SystemServiceImpl implements SystemService {
 
 	private static final int INSTRUCTION_OFFSET = 3;
+	private static final int FIRST = 0;
 	private static boolean fetch = false;
 	private static boolean stall = false;
 	private static Map<Integer, Set<Process>> processMap = new HashMap<Integer, Set<Process>>();
 	private static Map<String, Hazard> registerDataMap = new HashMap<String, Hazard>();
-	private static Set<Process> stalled = new HashSet<Process>();
+	private static List<Process> stalled = new ArrayList<Process>();
 
 	private RegisterService registerService = new RegisterServiceImpl();
 	private MemoryAddressService memoryAddressService = new MemoryAddressServiceImpl();
@@ -83,11 +85,13 @@ public class SystemServiceImpl implements SystemService {
 					Register aluDest = registerService.find("R" + Integer.parseInt(InstructionUtil.getRd(opcode), 2));
 					aluDest.setValue(mem_wb_aluoutput.getValue());
 					registerService.update(aluDest);
+					updateRegisterDataMapLocation(InstructionUtil.getRd(opcode), Hazard.newInstance(DataLocation.WB, null));
 					break;
 				case IMM:
 					Register immDest = registerService.find("R" + Integer.parseInt(InstructionUtil.getRt(opcode), 2));
 					immDest.setValue(mem_wb_aluoutput.getValue());
 					registerService.update(immDest);
+					updateRegisterDataMapLocation(InstructionUtil.getRt(opcode), Hazard.newInstance(DataLocation.WB, null));
 					break;
 				case LOAD_STORE:
 					Op op = InstructionUtil.getOp(params.getOperationCode());
@@ -95,6 +99,7 @@ public class SystemServiceImpl implements SystemService {
 						Register ldDest = registerService.find("R" + Integer.parseInt(InstructionUtil.getRt(opcode), 2));
 						ldDest.setValue(mem_wb_lmd.getValue());
 						registerService.update(ldDest);
+						updateRegisterDataMapLocation(InstructionUtil.getRt(opcode), Hazard.newInstance(DataLocation.WB, Op.LD));
 					}
 					break;
 				case BRANCH:
@@ -115,7 +120,7 @@ public class SystemServiceImpl implements SystemService {
 	private void filterRegisterDataMap() {
 		Map<String, Hazard> filtered = new HashMap<String, Hazard>(); 
 		for (String key : registerDataMap.keySet()) {
-			if (!DataLocation.MEM.equals(registerDataMap.get(key).getDataLocation())) {
+			if (!DataLocation.WB.equals(registerDataMap.get(key).getDataLocation())) {
 				filtered.put(key, registerDataMap.get(key));
 			}
 		}
@@ -123,19 +128,7 @@ public class SystemServiceImpl implements SystemService {
 	}
 
 	private Set<Process> getLastCycleProcesses(int cycle) {
-		Set<Process> processes = new HashSet<Process>();
-		if (null == processMap.get(cycle - 1)) {
-			return processes;
-		} else {
-			processes.addAll(processMap.get(cycle - 1));
-			for (Process p : stalled) {
-				System.out.println("Adding stalled proc: " + p);
-				processes.add(p);
-			}
-			processMap.put(cycle - 1, processes);
-			stalled = new HashSet<Process>();
-			return processes;
-		}
+		return null == processMap.get(cycle - 1)? new HashSet<Process>() : processMap.get(cycle -1 );
 	}
 
 	private void mem(int cycle) {
@@ -191,7 +184,6 @@ public class SystemServiceImpl implements SystemService {
 							begin = end;
 							end = offset * i++;
 						}
-						updateRegisterDataMapLocation(InstructionUtil.getRt(opcode), Hazard.newInstance(DataLocation.MEM, Op.LD));
 					}
 					else if (params.getOp().equals(Op.LD)) {
 						List<MemoryAddress> addresses = findMemoryAddresses(ex_mem_aluoutput);
@@ -200,6 +192,7 @@ public class SystemServiceImpl implements SystemService {
 							builder.append(ma.getValue());
 						}
 						mem_wb_lmd.setValue(builder.toString());
+						updateRegisterDataMapLocation(InstructionUtil.getRt(opcode), Hazard.newInstance(DataLocation.MEM, Op.LD));
 					}
 					break;
 				case BRANCH:
@@ -341,6 +334,9 @@ public class SystemServiceImpl implements SystemService {
 			case EX:
 				return registerService.find("EX/MEM.ALUOutput").getValue();
 			case MEM:
+				if (Op.LD.equals(InstructionUtil.getOp(opcode))) {
+					return registerService.find("MEM/WB.LMD").getValue();
+				}
 				return registerService.find("MEM/WB.ALUOutput").getValue();
 			case NIL:
 			default:
@@ -356,6 +352,9 @@ public class SystemServiceImpl implements SystemService {
 			case EX:
 				return registerService.find("EX/MEM.ALUOutput").getValue();
 			case MEM:
+				if (Op.LD.equals(InstructionUtil.getOp(opcode))) {
+					return registerService.find("MEM/WB.LMD").getValue();
+				}
 				return registerService.find("MEM/WB.ALUOutput").getValue();
 			case NIL:
 			default:
@@ -380,9 +379,10 @@ public class SystemServiceImpl implements SystemService {
 					break;
 				}
 			}
-			if(!stalled.isEmpty()){
+			if (!stalled.isEmpty()) {
+				address = stalled.get(FIRST).getAddress();
+				stalled.remove(FIRST);
 				hasIF = true;
-				stalled.clear();
 			}
 			if (hasIF) {
 				if (fetch) {
@@ -399,8 +399,7 @@ public class SystemServiceImpl implements SystemService {
 				if (params.getOperation().equals(Operation.BRANCH) && params.getOp().equals(Op.BNEZ)) {
 					String registerId = InstructionUtil.getRs(opcode);
 					if (registerDataMap.containsKey(registerId) && registerDataMap.get(registerId).equals(DataLocation.EX)) {
-						stall = true;
-						stalled.add(cached);
+						stall(cached);
 						return;
 					} else {
 						String nextPC = incrementPC(pc);
@@ -432,6 +431,7 @@ public class SystemServiceImpl implements SystemService {
 				Register id_ex_imm = registerService.find("ID/EX.Imm");
 				Register id_ex_npc = registerService.find("ID/EX.NPC");
 				Register id_ex_ir = registerService.find("ID/EX.IR");
+				Register mem_wb_lmd = registerService.find("MEM/WB.LMD");
 
 				Register rs = registerService.find("R" + Integer.parseInt(InstructionUtil.getRs(opcode), 2));
 				Register rt = registerService.find("R" + Integer.parseInt(InstructionUtil.getRt(opcode), 2));
@@ -439,14 +439,20 @@ public class SystemServiceImpl implements SystemService {
 				String rsId = InstructionUtil.getRs(opcode);
 				String rtId = InstructionUtil.getRt(opcode);
 				if (registerDataMap.containsKey(rsId) && registerDataMap.get(rsId).getOp().equals(Op.LD)) {
-					stall = true;
-					stalled.add(cached);
-					return;
+					if (registerDataMap.get(rsId).getDataLocation().equals(DataLocation.EX)) {
+						stall(cached);
+						return;
+					} else if (registerDataMap.get(rsId).getDataLocation().equals(DataLocation.MEM)) {
+						rs.setValue(mem_wb_lmd.getValue());
+					}
 				}
 				if (registerDataMap.containsKey(rtId) && registerDataMap.get(rtId).getOp().equals(Op.LD)) {
-					stall = true;
-					stalled.add(cached);
-					return;
+					if (registerDataMap.get(rtId).getDataLocation().equals(DataLocation.EX)) {
+						stall(cached);
+						return;
+					} else if (registerDataMap.get(rtId).getDataLocation().equals(DataLocation.MEM)) {
+						rt.setValue(mem_wb_lmd.getValue());
+					}
 				}
 
 				id_ex_a.setValue(rs.getValue());
@@ -466,6 +472,11 @@ public class SystemServiceImpl implements SystemService {
 				processMap.put(cycle, processes);
 			}
 		}
+	}
+
+	private void stall(Process process) {
+		stall = true;
+		stalled.add(process);
 	}
 
 	private OperationParams buildOperationParams(Register ir) {

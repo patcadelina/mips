@@ -31,4 +31,9 @@ public class Hazard {
 		this.op = op;
 	}
 
+	@Override
+	public String toString() {
+		return "Hazard [dataLocation=" + dataLocation + ", op=" + op + "]";
+	}
+
 }
